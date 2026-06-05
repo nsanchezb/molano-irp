@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useSurvey } from '../context/SurveyContext.jsx'
 import styles from './Bienvenida.module.css'
 
 export default function Bienvenida() {
   const navigate = useNavigate()
+  const { set } = useSurvey()
   const [aceptado, setAceptado] = useState(false)
 
   return (
@@ -58,7 +60,10 @@ export default function Bienvenida() {
             type="checkbox"
             className={styles.checkbox}
             checked={aceptado}
-            onChange={(e) => setAceptado(e.target.checked)}
+            onChange={(e) => {
+              setAceptado(e.target.checked)
+              if (e.target.checked) set({ consentAt: Math.floor(Date.now() / 1000) })
+            }}
           />
           <span className={styles.checkText}>
             He leído y acepto la{' '}

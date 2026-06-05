@@ -13,12 +13,13 @@ export function SurveyProvider({ children }) {
     department: null,       // departamento (nivel territorial)
     phone: null,
     token: null,            // JWT tras verificación OTP
+    consentAt: null,        // Unix timestamp del momento en que aceptó la política
   })
 
   const set = (fields) => setSurvey((prev) => ({ ...prev, ...fields }))
   const reset = () => setSurvey({
     surveyType: null, level: null, branch: null, sector: null,
-    entityId: null, entityName: null, department: null, phone: null, token: null,
+    entityId: null, entityName: null, department: null, phone: null, token: null, consentAt: null,
   })
 
   return (

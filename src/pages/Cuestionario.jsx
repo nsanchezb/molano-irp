@@ -18,7 +18,7 @@ function errorMsg(err) {
 export default function Cuestionario() {
   const navigate = useNavigate()
   const { survey, set } = useSurvey()
-  const { surveyType, token, entityId } = survey
+  const { surveyType, token, entityId, consentAt } = survey
 
   const cuestionario = surveyType ? getCuestionario(surveyType) : null
   const dims = cuestionario?.dimensiones ?? []
@@ -79,7 +79,7 @@ export default function Cuestionario() {
     setSubmitting(true)
     setError(null)
     try {
-      await submitSurvey({ token, answers: flat })
+      await submitSurvey({ token, answers: flat, consentAt })
       clearDraft()
       set({ answers: flat })
       navigate('/gracias', { replace: true })

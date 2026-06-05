@@ -141,6 +141,7 @@ export const handler = async (event) => {
   const token = createJwt(
     {
       phoneHash,
+      phone: fullPhone,
       entityId,
       surveyType,
       iat: now,

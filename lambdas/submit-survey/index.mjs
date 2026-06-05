@@ -65,10 +65,11 @@ export const handler = async (event) => {
   const now = Math.floor(Date.now() / 1000);
   if (claims.exp < now) return response(401, { error: 'token_expired' });
 
-  let answers;
+  let answers, consentAt;
   try {
     const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     answers = body?.answers;
+    consentAt = body?.consentAt;
   } catch {
     return response(400, { error: 'invalid_body' });
   }
@@ -80,7 +81,7 @@ export const handler = async (event) => {
     return response(400, { error: 'invalid_answers' });
   }
 
-  const { phoneHash, entityId, surveyType } = claims;
+  const { phoneHash, phone, entityId, surveyType } = claims;
   const responseId = createHash('sha256')
     .update(`${phoneHash}:${entityId}:${surveyType}`)
     .digest('hex');
@@ -90,10 +91,12 @@ export const handler = async (event) => {
     Item: {
       responseId: { S: responseId },
       phoneHash: { S: phoneHash },
+      ...(phone && { phone: { S: phone } }),
       entityId: { S: String(entityId) },
       surveyType: { S: surveyType },
       answers: { S: JSON.stringify(answers) },
       createdAt: { N: String(now) },
+      ...(consentAt && { consentAt: { N: String(consentAt) } }),
     },
     ConditionExpression: 'attribute_not_exists(responseId)',
   })).catch((err) => {
