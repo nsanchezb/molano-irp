@@ -17,6 +17,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@media (min-width: 541px) {
+  body {
+    background: linear-gradient(160deg, #0f2540 0%, #1a3c5e 50%, #1e4976 100%);
+    background-attachment: fixed;
+  }
+}
+
 #root {
   min-height: 100dvh;
   display: flex;
