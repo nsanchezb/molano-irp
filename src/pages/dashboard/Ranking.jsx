@@ -4,6 +4,7 @@ import { isAuthenticated, logout } from '../../hooks/useDashboardAuth.js'
 import { getResultados } from '../../api/resultados.js'
 import { useEntidades } from '../../hooks/useEntidades.js'
 import TimelineChart from '../../components/TimelineChart.jsx'
+import QRModal from '../../components/QRModal.jsx'
 import styles from './Ranking.module.css'
 
 function chipClass(v) {
@@ -55,6 +56,7 @@ export default function Ranking() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [busqueda, setBusqueda] = useState('')
+  const [qrEntity, setQrEntity] = useState(null) // { id, name }
   const [filtroTipo, setFiltroTipo] = useState('')   // '' | 'nacional' | 'territorial'
   const [filtroRama, setFiltroRama] = useState('')
   const [filtroSector, setFiltroSector] = useState('')
@@ -314,39 +316,57 @@ export default function Ranking() {
             {filtradas.map((e, idx) => {
               const irpPct = maxIrp > 0 ? ((e.irpGlobal ?? 0) / maxIrp) * 100 : 0
               const totalN = (e.ciudadania?.n ?? 0) + (e.funcionario?.n ?? 0)
+              const name = getEntityName(e.entityId)
               return (
-                <Link key={e.entityId} className={styles.fila} to={`/dashboard/entidad/${e.entityId}`}>
-                  <span className={`${styles.pos} ${idx < 3 ? styles.posTop : ''}`}>{idx + 1}</span>
-                  <span className={styles.nombre}>{getEntityName(e.entityId)}</span>
+                <div key={e.entityId} className={styles.filaWrap}>
+                  <Link className={styles.fila} to={`/dashboard/entidad/${e.entityId}`}>
+                    <span className={`${styles.pos} ${idx < 3 ? styles.posTop : ''}`}>{idx + 1}</span>
+                    <span className={styles.nombre}>{name}</span>
 
-                  {/* IRP Global con barra */}
-                  <div className={styles.scoreWrap}>
-                    <div className={styles.scoreRow}>
-                      <span className={`${styles.scoreNum} ${colorClass(e.irpGlobal)}`}>
-                        {e.irpGlobal?.toFixed(2) ?? '—'}
+                    <div className={styles.scoreWrap}>
+                      <div className={styles.scoreRow}>
+                        <span className={`${styles.scoreNum} ${colorClass(e.irpGlobal)}`}>
+                          {e.irpGlobal?.toFixed(2) ?? '—'}
+                        </span>
+                      </div>
+                      <div className={styles.scoreMiniBar}>
+                        <div className={`${styles.scoreMiniBarFill} ${bgClass(e.irpGlobal)}`} style={{ width: `${irpPct}%` }} />
+                      </div>
+                    </div>
+
+                    <span className={`${styles.scoreChip} ${chipClass(e.ciudadania?.total)}`}>
+                      {e.ciudadania?.total?.toFixed(2) ?? '—'}
+                    </span>
+                    <span className={`${styles.scoreChip} ${chipClass(e.funcionario?.total)}`}>
+                      {e.funcionario?.total?.toFixed(2) ?? '—'}
+                    </span>
+
+                    <div className={styles.nResp}>
+                      <span className={styles.nRespTotal}>{totalN}</span>
+                      <span className={styles.nRespSub}>
+                        {e.ciudadania?.n ? `C:${e.ciudadania.n}` : ''}
+                        {e.ciudadania?.n && e.funcionario?.n ? ' ' : ''}
+                        {e.funcionario?.n ? `F:${e.funcionario.n}` : ''}
                       </span>
                     </div>
-                    <div className={styles.scoreMiniBar}>
-                      <div className={`${styles.scoreMiniBarFill} ${bgClass(e.irpGlobal)}`} style={{ width: `${irpPct}%` }} />
-                    </div>
-                  </div>
-
-                  <span className={`${styles.scoreChip} ${chipClass(e.ciudadania?.total)}`}>
-                    {e.ciudadania?.total?.toFixed(2) ?? '—'}
-                  </span>
-                  <span className={`${styles.scoreChip} ${chipClass(e.funcionario?.total)}`}>
-                    {e.funcionario?.total?.toFixed(2) ?? '—'}
-                  </span>
-
-                  <div className={styles.nResp}>
-                    <span className={styles.nRespTotal}>{totalN}</span>
-                    <span className={styles.nRespSub}>
-                      {e.ciudadania?.n ? `C:${e.ciudadania.n}` : ''}
-                      {e.ciudadania?.n && e.funcionario?.n ? ' ' : ''}
-                      {e.funcionario?.n ? `F:${e.funcionario.n}` : ''}
-                    </span>
-                  </div>
-                </Link>
+                  </Link>
+                  <button
+                    className={styles.btnQR}
+                    onClick={() => setQrEntity({ id: e.entityId, name })}
+                    aria-label={`Generar QR para ${name}`}
+                    title="Generar QR"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <rect x="2" y="2" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.8" />
+                      <rect x="11" y="2" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.8" />
+                      <rect x="2" y="11" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.8" />
+                      <rect x="11" y="11" width="3" height="3" rx="0.5" fill="currentColor" />
+                      <rect x="16" y="11" width="2" height="2" rx="0.5" fill="currentColor" />
+                      <rect x="11" y="16" width="2" height="2" rx="0.5" fill="currentColor" />
+                      <rect x="15" y="15" width="3" height="3" rx="0.5" fill="currentColor" />
+                    </svg>
+                  </button>
+                </div>
               )
             })}
           </div>
@@ -356,6 +376,13 @@ export default function Ranking() {
           <div className={styles.updatedAt}>Actualizado: {new Date(resultados.updatedAt).toLocaleString('es-CO')}</div>
         )}
       </div>
+
+      {qrEntity && (
+        <QRModal
+          entityName={qrEntity.name}
+          onClose={() => setQrEntity(null)}
+        />
+      )}
     </div>
   )
 }
