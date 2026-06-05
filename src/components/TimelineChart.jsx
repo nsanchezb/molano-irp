@@ -21,17 +21,20 @@ export default function TimelineChart({ dailyCounts = [] }) {
   const [period, setPeriod] = useState('30d')
   const [hovered, setHovered] = useState(null)
 
-  const filtered = useMemo(() => {
+  const { startStr, endStr } = useMemo(() => {
     const days = PERIODS.find((p) => p.key === period).days
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - days)
-    const cutoffStr = cutoff.toISOString().slice(0, 10)
-    return dailyCounts.filter((d) => d.date >= cutoffStr)
-  }, [dailyCounts, period])
+    const end = new Date()
+    const start = new Date()
+    start.setDate(start.getDate() - days + 1)
+    return {
+      startStr: start.toISOString().slice(0, 10),
+      endStr:   end.toISOString().slice(0, 10),
+    }
+  }, [period])
 
   if (dailyCounts.length === 0) return null
 
-  const filled = fillDays(filtered)
+  const filled = fillDays(dailyCounts, startStr, endStr)
   const maxCount = Math.max(...filled.map((d) => d.count), 1)
   const n = filled.length
 
@@ -88,10 +91,7 @@ export default function TimelineChart({ dailyCounts = [] }) {
         </select>
       </div>
 
-      {filled.length === 0 ? (
-        <p className={styles.empty}>Sin respuestas en este período.</p>
-      ) : (
-        <svg
+      <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
           className={styles.svg}
@@ -158,16 +158,14 @@ export default function TimelineChart({ dailyCounts = [] }) {
             </text>
           ))}
         </svg>
-      )}
     </div>
   )
 }
 
-function fillDays(data) {
-  if (data.length === 0) return []
+function fillDays(data, startStr, endStr) {
   const map = Object.fromEntries(data.map((d) => [d.date, d.count]))
-  const start = new Date(data[0].date + 'T12:00:00Z')
-  const end   = new Date(data[data.length - 1].date + 'T12:00:00Z')
+  const start = new Date(startStr + 'T12:00:00Z')
+  const end   = new Date(endStr   + 'T12:00:00Z')
   const result = []
   for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     const key = d.toISOString().slice(0, 10)
