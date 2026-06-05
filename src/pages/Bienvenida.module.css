@@ -135,6 +135,35 @@
   font-weight: 500;
 }
 
+/* Checkbox autorización */
+.checkWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  cursor: pointer;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #1a3c5e;
+  cursor: pointer;
+}
+
+.checkText {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #374151;
+}
+
+.checkLink {
+  color: #1a3c5e;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 /* CTA */
 .cta {
   display: flex;
@@ -158,6 +187,12 @@
 
 .cta:active {
   transform: scale(0.98);
+}
+
+.cta:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Footer */

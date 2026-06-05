@@ -1,8 +1,10 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import styles from './Bienvenida.module.css'
 
 export default function Bienvenida() {
   const navigate = useNavigate()
+  const [aceptado, setAceptado] = useState(false)
 
   return (
     <div className={styles.page}>
@@ -51,9 +53,26 @@ export default function Bienvenida() {
           </div>
         </div>
 
+        <label className={styles.checkWrap}>
+          <input
+            type="checkbox"
+            className={styles.checkbox}
+            checked={aceptado}
+            onChange={(e) => setAceptado(e.target.checked)}
+          />
+          <span className={styles.checkText}>
+            He leído y acepto la{' '}
+            <Link to="/politica-datos" className={styles.checkLink} onClick={(e) => e.stopPropagation()}>
+              Política de Tratamiento de Datos Personales
+            </Link>
+            {' '}y autorizo el tratamiento de mis datos conforme a ella.
+          </span>
+        </label>
+
         <button
           className={styles.cta}
           onClick={() => navigate('/perfil')}
+          disabled={!aceptado}
           aria-label="Comenzar la evaluación"
         >
           Comenzar evaluación
