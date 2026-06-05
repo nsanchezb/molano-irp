@@ -1,21 +1,22 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSurvey } from '../context/SurveyContext.jsx'
-import { getCuestionario, flattenPreguntas, ESCALA } from '../data/cuestionarios.js'
+import { getCuestionario, flattenAnswers } from '../data/cuestionarios.js'
 import { submitSurvey } from '../api/survey.js'
 import styles from './Cuestionario.module.css'
+
+const ESCALA_MIN = 'Muy bajo'
+const ESCALA_MAX = 'Muy alto'
 
 export default function Cuestionario() {
   const navigate = useNavigate()
   const { survey, set } = useSurvey()
   const { surveyType, token } = survey
 
-  const [preguntas] = useState(() => {
-    if (!surveyType) return []
-    return flattenPreguntas(getCuestionario(surveyType))
-  })
+  const cuestionario = surveyType ? getCuestionario(surveyType) : null
+  const dims = cuestionario?.dimensiones ?? []
 
-  const [idx, setIdx] = useState(0)
+  const [dimIdx, setDimIdx] = useState(0)
   const [answers, setAnswers] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
@@ -24,39 +25,48 @@ export default function Cuestionario() {
     if (!surveyType || !token) navigate('/', { replace: true })
   }, [surveyType, token, navigate])
 
-  if (!surveyType || !token) return null
+  if (!surveyType || !token || !dims.length) return null
 
-  const total = preguntas.length
-  const pregunta = preguntas[idx]
-  const selected = answers[idx] ?? null
-  const pct = Math.round(((idx + (selected ? 1 : 0)) / total) * 100)
-  const esUltima = idx === total - 1
+  const dim = dims[dimIdx]
+  const totalDims = dims.length
+  const esUltima = dimIdx === totalDims - 1
+  const pct = Math.round(((dimIdx + 1) / totalDims) * 100)
 
-  const seleccionar = useCallback((value) => {
+  const dimAnswers = answers[dimIdx] ?? []
+  const todasRespondidas = dim.preguntas.every((_, qi) => dimAnswers[qi] != null)
+
+  function seleccionar(qi, value) {
     setAnswers((prev) => {
       const next = [...prev]
-      next[idx] = value
+      const da = [...(next[dimIdx] ?? [])]
+      da[qi] = value
+      next[dimIdx] = da
       return next
     })
     setError(null)
-
-    if (!esUltima) {
-      setTimeout(() => setIdx((i) => i + 1), 280)
-    }
-  }, [idx, esUltima])
-
-  const handleBack = () => {
-    if (idx === 0) navigate(-1)
-    else setIdx((i) => i - 1)
   }
 
-  const handleSubmit = async () => {
-    if (submitting) return
+  function handleBack() {
+    if (dimIdx === 0) navigate(-1)
+    else { setDimIdx((i) => i - 1); setError(null) }
+  }
+
+  async function handleSiguiente() {
+    if (!todasRespondidas) {
+      setError('Responde todas las preguntas antes de continuar.')
+      return
+    }
+    if (!esUltima) {
+      setDimIdx((i) => i + 1)
+      setError(null)
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
-      await submitSurvey({ token, answers })
-      set({ answers })
+      const flat = flattenAnswers(cuestionario, answers)
+      await submitSurvey({ token, answers: flat })
+      set({ answers: flat })
       navigate('/gracias', { replace: true })
     } catch {
       setError('No pudimos enviar tus respuestas. Verifica tu conexión e inténtalo de nuevo.')
@@ -64,8 +74,6 @@ export default function Cuestionario() {
       setSubmitting(false)
     }
   }
-
-  const puedeAvanzar = selected !== null
 
   return (
     <div className={styles.page}>
@@ -78,73 +86,73 @@ export default function Cuestionario() {
             </svg>
             Volver
           </button>
-          <span className={styles.contador}>{idx + 1} / {total}</span>
+          <span className={styles.dimLabel}>Dimensión {dimIdx + 1} de {totalDims}</span>
         </div>
 
         <div className={styles.barraWrap}>
-          <div
-            className={styles.barra}
-            style={{ width: `${pct}%`, background: pregunta.dimColor }}
-          />
+          <div className={styles.barra} style={{ width: `${pct}%`, background: dim.color }} />
         </div>
 
-        <span
-          className={styles.dimBadge}
-          style={{ background: pregunta.dimColor }}
-        >
-          {pregunta.dimNombre}
+        <span className={styles.dimBadge} style={{ background: dim.color }}>
+          {dim.nombre}
         </span>
       </div>
 
       <div className={styles.body}>
-        <div className={styles.preguntaWrap}>
-          <p className={styles.pregunta}>{pregunta.texto}</p>
-          {pregunta.invertida && (
-            <span className={styles.invertidaTag}>Pregunta inversa</span>
-          )}
-        </div>
+        {dim.aviso && (
+          <div className={styles.aviso}>
+            <span>⚠️</span>
+            <span>{dim.aviso}</span>
+          </div>
+        )}
 
-        <div className={styles.opciones}>
-          {ESCALA.map((op) => {
-            const isSelected = selected === op.value
-            return (
-              <button
-                key={op.value}
-                className={`${styles.opcion} ${isSelected ? styles.opcionSeleccionada : ''}`}
-                style={isSelected ? { color: pregunta.dimColor } : {}}
-                onClick={() => seleccionar(op.value)}
-                disabled={submitting}
-              >
-                <span className={styles.opcionNum}>{op.value}</span>
-                <span className={styles.opcionLabel}>{op.label}</span>
-              </button>
-            )
-          })}
-        </div>
+        {dim.preguntas.map((p, qi) => {
+          const val = dimAnswers[qi] ?? null
+          return (
+            <div key={qi} className={styles.preguntaCard}>
+              <span className={styles.preguntaLabel}>{p.label}</span>
+              <p className={styles.preguntaTexto}>{p.texto}</p>
+
+              <div className={styles.escala}>
+                <div className={styles.escalaOpciones}>
+                  {[1, 2, 3, 4, 5].map((n) => {
+                    const activo = val === n
+                    return (
+                      <button
+                        key={n}
+                        className={`${styles.escalaBtn} ${activo ? styles.escalaBtnActivo : ''}`}
+                        style={activo ? { background: dim.color, borderColor: dim.color } : {}}
+                        onClick={() => seleccionar(qi, n)}
+                        disabled={submitting}
+                        aria-label={`${n} de 5`}
+                        aria-pressed={activo}
+                      >
+                        {n}
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className={styles.escalaLabels}>
+                  <span className={styles.escalaLabelMin}>{ESCALA_MIN}</span>
+                  <span className={styles.escalaLabelMax}>{ESCALA_MAX}</span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       <div className={styles.footer}>
         {error && <p className={styles.error}>{error}</p>}
-        {esUltima && (
-          <button
-            className={styles.btnSiguiente}
-            onClick={handleSubmit}
-            disabled={!puedeAvanzar || submitting}
-          >
-            {submitting
-              ? <span className={styles.spinner} aria-hidden="true" />
-              : 'Enviar respuestas'}
-          </button>
-        )}
-        {!esUltima && (
-          <button
-            className={styles.btnSiguiente}
-            onClick={() => setIdx((i) => i + 1)}
-            disabled={!puedeAvanzar || submitting}
-          >
-            Siguiente
-          </button>
-        )}
+        <button
+          className={styles.btnSiguiente}
+          onClick={handleSiguiente}
+          disabled={submitting}
+        >
+          {submitting
+            ? <span className={styles.spinner} aria-hidden="true" />
+            : esUltima ? 'Enviar evaluación' : 'Siguiente dimensión →'}
+        </button>
       </div>
     </div>
   )

@@ -1,70 +1,110 @@
-export const ESCALA = [
-  { value: 1, label: 'Muy en desacuerdo' },
-  { value: 2, label: 'En desacuerdo' },
-  { value: 3, label: 'Neutral' },
-  { value: 4, label: 'De acuerdo' },
-  { value: 5, label: 'Muy de acuerdo' },
-]
-
 export const CIUDADANIA = {
   surveyType: 'ciudadania',
   dimensiones: [
     {
       id: 'confianza',
-      nombre: 'Confianza',
+      nombre: 'Confianza e Integridad',
       color: '#1a3c5e',
       preguntas: [
-        'Esta entidad actúa con honestidad y transparencia.',
-        'Confío en que esta entidad cumple sus compromisos con los ciudadanos.',
-        'Esta entidad toma decisiones pensando en el bien común.',
+        {
+          label: 'Transparencia y rendición de cuentas',
+          texto: '¿Qué tan abierta y clara es la entidad con su información (más allá del cumplimiento de ley)?',
+        },
+        {
+          label: 'Ética y lucha contra la corrupción',
+          texto: '¿Qué tan honesta percibes a la entidad?',
+        },
+        {
+          label: 'Justicia y equidad',
+          texto: '¿Qué trato da la entidad a los ciudadanos, sin sesgos ni favoritismos?',
+        },
       ],
     },
     {
-      id: 'calidad',
-      nombre: 'Calidad del servicio',
+      id: 'gestion',
+      nombre: 'Gestión e Impacto Social',
       color: '#0f766e',
       preguntas: [
-        'Los trámites y servicios de esta entidad son fáciles de realizar.',
-        'El personal atiende a los ciudadanos con respeto y amabilidad.',
-        'Los tiempos de respuesta de esta entidad son adecuados.',
+        {
+          label: 'Trámites y resolutividad',
+          texto: '¿La entidad soluciona el problema o es un laberinto burocrático?',
+        },
+        {
+          label: 'Canales digitales vs. presenciales',
+          texto: '¿La página web o los puntos de atención física son dignos, de fácil accesibilidad y funcionales?',
+        },
+        {
+          label: 'Inclusión',
+          texto: '¿Qué tan adaptada está la entidad para atender a poblaciones vulnerables, adultos mayores o minorías?',
+        },
       ],
     },
     {
       id: 'transparencia',
-      nombre: 'Transparencia',
+      nombre: 'Transparencia Percibida',
       color: '#7c3aed',
       preguntas: [
-        'Esta entidad informa claramente sobre sus actividades y decisiones.',
-        'Es fácil acceder a información sobre el uso de recursos públicos.',
-        'Esta entidad rinde cuentas de manera comprensible para los ciudadanos.',
+        {
+          label: 'Destinación del gasto visible',
+          texto: '¿Ves los impuestos invertidos en obras y programas tangibles, o sientes que el dinero desaparece?',
+        },
+        {
+          label: 'Meritocracia percibida',
+          texto: '¿Sientes que para acceder a un servicio o empleo se requiere «palanca» o es un proceso justo?',
+        },
+        {
+          label: 'Acceso a la información',
+          texto: '¿Qué tan fácil de entender es la información presupuestal para cualquier tipo de persona?',
+        },
       ],
     },
     {
-      id: 'efectividad',
-      nombre: 'Efectividad',
+      id: 'comunicacion',
+      nombre: 'Comunicación, Escucha y Pedagogía',
       color: '#b45309',
       preguntas: [
-        'Los programas y servicios de esta entidad resuelven problemas reales.',
-        'Esta entidad logra los resultados que promete.',
+        {
+          label: 'Capacidad de respuesta y escucha',
+          texto: '¿La entidad responde de fondo las PQRS o usa respuestas automáticas?',
+        },
+        {
+          label: 'Pedagogía social',
+          texto: '¿La entidad explica claramente para qué sirve y cuáles son sus proyectos estratégicos?',
+        },
+        {
+          label: 'Gestión de crisis y veracidad',
+          texto: 'Ante un escándalo, ¿la entidad sale a dar la cara con datos verídicos o se esconde?',
+        },
       ],
     },
     {
-      id: 'participacion',
-      nombre: 'Participación ciudadana',
+      id: 'identidad',
+      nombre: 'Identidad, Orgullo y Conexión Emocional',
       color: '#be185d',
       preguntas: [
-        'Esta entidad facilita la participación activa de los ciudadanos.',
-        'Es fácil presentar quejas, sugerencias o peticiones a esta entidad.',
-        'Esta entidad responde oportunamente a las solicitudes ciudadanas.',
+        {
+          label: 'Aporte a la identidad común',
+          texto: '¿La entidad representa los valores del territorio? ¿Hace sentir orgulloso al ciudadano?',
+        },
+        {
+          label: 'Confianza en el liderazgo visible',
+          texto: '¿Percibes al/la directivo/a como un líder idóneo y empático, o como figura puramente política?',
+        },
       ],
     },
     {
-      id: 'impacto',
-      nombre: 'Impacto social',
+      id: 'estrategica',
+      nombre: 'Estratégica — Activos Intangibles',
       color: '#047857',
       preguntas: [
-        'Esta entidad contribuye al bienestar de la comunidad.',
-        'Las acciones de esta entidad generan cambios positivos en mi vida cotidiana.',
+        {
+          label: 'Compromiso con la sostenibilidad',
+          texto: '¿Qué tan comprometida está la entidad con un impacto real en lo social, ambiental y gobernanza?',
+        },
+        {
+          label: 'Generación de valor público',
+          texto: '¿Ha logrado la entidad impacto real y visible en el bienestar de la comunidad?',
+        },
       ],
     },
   ],
@@ -74,52 +114,92 @@ export const FUNCIONARIO = {
   surveyType: 'funcionario',
   dimensiones: [
     {
-      id: 'liderazgo',
-      nombre: 'Liderazgo y gestión',
+      id: 'compensacion',
+      nombre: 'Compensación, Estabilidad y Equidad Laboral',
       color: '#1a3c5e',
       preguntas: [
-        'Los directivos de esta entidad demuestran un liderazgo efectivo.',
-        'Existe una visión clara y compartida dentro de la entidad.',
-        'Las decisiones directivas son coherentes con los valores institucionales.',
+        {
+          label: 'Competitividad Salarial',
+          texto: 'Califique el nivel de competitividad y justicia de la escala salarial frente a las responsabilidades del cargo y el mercado laboral.',
+        },
+        {
+          label: 'Dignidad al Contratista (OPS)',
+          texto: 'Califique el nivel de respeto, equidad en cargas laborales y puntualidad en los pagos a colaboradores bajo Prestación de Servicios.',
+        },
+        {
+          label: 'Disponibilidad de Herramientas',
+          texto: 'Califique la suficiencia y calidad de las herramientas técnicas, tecnológicas y de infraestructura para desempeñar sus funciones.',
+        },
       ],
     },
     {
-      id: 'clima',
-      nombre: 'Clima organizacional',
+      id: 'desarrollo',
+      nombre: 'Desarrollo Profesional y Meritocracia',
       color: '#0f766e',
       preguntas: [
-        'El ambiente de trabajo promueve la colaboración entre servidores públicos.',
-        'Me siento valorado/a como servidor/a público/a en esta entidad.',
-        'La comunicación interna es fluida y transparente.',
+        {
+          label: 'Oportunidades de Ascenso',
+          texto: 'Califique el nivel de transparencia, justicia y viabilidad para crecer profesionalmente o ascender mediante el mérito.',
+        },
+        {
+          label: 'Impacto de Bienestar y Capacitación',
+          texto: 'Califique la calidad y utilidad de los planes de estímulos, capacitación y programas de bienestar.',
+        },
+        {
+          label: 'Objetividad en la Evaluación',
+          texto: 'Califique el nivel de objetividad y transparencia de las evaluaciones de desempeño internas.',
+        },
       ],
     },
     {
-      id: 'capacidad',
-      nombre: 'Capacidad institucional',
+      id: 'gobernanza',
+      nombre: 'Gobernanza, Liderazgo e Idoneidad Directiva',
       color: '#7c3aed',
       preguntas: [
-        'La entidad cuenta con los recursos necesarios para cumplir su misión.',
-        'Los procesos internos son eficientes y están bien definidos.',
-        'La tecnología disponible facilita el desempeño de mi trabajo.',
+        {
+          label: 'Calidad del Liderazgo',
+          texto: 'Califique la capacidad de jefes y directivos para guiar equipos con empatía, instrucciones claras y coherencia ética.',
+        },
+        {
+          label: 'Idoneidad Técnica de la Gerencia',
+          texto: 'Califique el nivel de preparación profesional y conocimiento técnico de los altos directivos.',
+        },
       ],
     },
     {
-      id: 'integridad',
-      nombre: 'Integridad',
+      id: 'innovacion',
+      nombre: 'Innovación Pública y Modernización Organizacional',
       color: '#b45309',
       preguntas: [
-        'En esta entidad se actúa con ética e integridad.',
-        'Existen mecanismos efectivos para prevenir la corrupción interna.',
+        {
+          label: 'Apertura a la Innovación',
+          texto: 'Califique el nivel de apertura para escuchar, valorar e implementar ideas nuevas propuestas por los colaboradores.',
+        },
+        {
+          label: 'Madurez Digital',
+          texto: 'Califique la eficiencia de la entidad en digitalización de procesos internos y automatización de trámites.',
+        },
       ],
     },
     {
-      id: 'satisfaccion',
-      nombre: 'Satisfacción laboral',
+      id: 'blindaje',
+      nombre: 'Blindaje Institucional y Politización',
       color: '#be185d',
       invertida: true,
+      aviso: 'En esta dimensión: 1 = alta politización (malo) · 5 = entidad técnica e independiente (bueno)',
       preguntas: [
-        'Trabajar en esta entidad es frustrante y desmotivante.',
-        'Consideraría dejar esta entidad si tuviera otra oportunidad laboral.',
+        {
+          label: 'Independencia del Criterio Técnico',
+          texto: 'Califique el nivel de independencia frente a presiones políticas o cuotas partidistas en decisiones operativas.',
+        },
+        {
+          label: 'Transparencia en la Contratación de Personal',
+          texto: 'Califique la rigurosidad técnica con la que se contrata personal, garantizando que prima el perfil profesional.',
+        },
+        {
+          label: 'Continuidad Institucional en Transiciones',
+          texto: 'Califique el respeto por la memoria institucional y la continuidad de procesos técnicos ante cambios de gobierno.',
+        },
       ],
     },
   ],
@@ -129,18 +209,12 @@ export function getCuestionario(surveyType) {
   return surveyType === 'funcionario' ? FUNCIONARIO : CIUDADANIA
 }
 
-export function flattenPreguntas(cuestionario) {
-  const result = []
-  for (const dim of cuestionario.dimensiones) {
-    for (let i = 0; i < dim.preguntas.length; i++) {
-      result.push({
-        dimId: dim.id,
-        dimNombre: dim.nombre,
-        dimColor: dim.color,
-        invertida: dim.invertida ?? false,
-        texto: dim.preguntas[i],
-      })
-    }
-  }
-  return result
+export function flattenAnswers(cuestionario, answers2d) {
+  const flat = []
+  cuestionario.dimensiones.forEach((dim, di) => {
+    dim.preguntas.forEach((_, qi) => {
+      flat.push(answers2d[di]?.[qi] ?? null)
+    })
+  })
+  return flat
 }
