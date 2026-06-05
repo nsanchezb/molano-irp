@@ -25,8 +25,8 @@ export default function PoliticaDatos() {
         <h2 className={styles.h2}>1. Responsable del tratamiento</h2>
         <p>El responsable del tratamiento de los datos personales recolectados, almacenados, usados, circulados, transmitidos, transferidos, analizados, comercializados o suprimidos en desarrollo del <strong>Índice de Reputación Pública — IRP</strong> es:</p>
         <div className={styles.infoBox}>
-          <p><strong>Mauricio Molano</strong></p>
-          <p>Cédula de ciudadanía: 79.684.986</p>
+          <p><strong>Vencejo Consultores SAS</strong></p>
+          <p>NIT: 902.069.284-4</p>
           <p>Correo electrónico: <a href="mailto:info@indicereputacionpublica.co">info@indicereputacionpublica.co</a></p>
           <p>Sitio web: <a href="https://www.indicereputacionpublica.co">www.indicereputacionpublica.co</a></p>
           <p>Domicilio: Park Place, Cajicá, Cundinamarca, Colombia</p>
