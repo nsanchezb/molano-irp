@@ -9,7 +9,10 @@ function sortData(json) {
     if (rama.t === 's') {
       // Rama ejecutiva: sectores y entidades dentro de cada sector
       rama.d.sort((a, b) => col.compare(a.s, b.s))
-      for (const sector of rama.d) sector.e.sort((a, b) => col.compare(a.n, b.n))
+      for (const sector of rama.d) {
+        if (!Array.isArray(sector.e)) sector.e = sector.e ? [sector.e] : []
+        sector.e.sort((a, b) => col.compare(a.n, b.n))
+      }
     } else {
       // Otras ramas: lista plana de entidades
       rama.d.sort((a, b) => col.compare(a.n, b.n))
