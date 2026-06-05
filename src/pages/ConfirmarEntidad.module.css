@@ -1,0 +1,94 @@
+.resumen {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.25rem 0;
+  overflow: hidden;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+}
+
+.filaEntidad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.85rem 1rem;
+}
+
+.divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0 1rem;
+}
+
+.etiqueta {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.valor {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a2332;
+  text-align: right;
+}
+
+.entidadNombre {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a3c5e;
+  line-height: 1.3;
+}
+
+/* Botones */
+.cambiar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: none;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.7rem;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+.cambiar:hover { border-color: #94a3b8; color: #374151; }
+
+.continuar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #1a3c5e;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  width: 100%;
+  transition: background 0.15s, transform 0.1s;
+  min-height: 54px;
+}
+.continuar:hover { background: #0f2540; }
+.continuar:active { transform: scale(0.98); }
+
+.nota {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.5;
+}
