@@ -1,0 +1,108 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+  transition: border-color 0.15s;
+}
+.inputWrap:focus-within {
+  border-color: #1a3c5e;
+  background: white;
+}
+
+.prefix {
+  padding: 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a3c5e;
+  border-right: 2px solid #e2e8f0;
+  background: #f0f4f8;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1a2332;
+  padding: 0 1rem;
+  height: 54px;
+  outline: none;
+  letter-spacing: 0.05em;
+  font-family: inherit;
+}
+.input::placeholder { color: #cbd5e1; font-weight: 400; letter-spacing: 0; }
+
+.error {
+  font-size: 0.82rem;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  line-height: 1.4;
+}
+
+.aviso {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #1a3c5e;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  width: 100%;
+  min-height: 54px;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+.btn:hover:not(:disabled) { background: #0f2540; }
+.btn:active:not(:disabled) { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.privacidad {
+  font-size: 0.73rem;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.5;
+}
+.privacidad strong { color: #64748b; }

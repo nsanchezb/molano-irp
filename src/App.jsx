@@ -6,6 +6,8 @@ import Nivel from './pages/Nivel.jsx'
 import EntidadNacional from './pages/EntidadNacional.jsx'
 import EntidadTerritorial from './pages/EntidadTerritorial.jsx'
 import ConfirmarEntidad from './pages/ConfirmarEntidad.jsx'
+import IngresoCelular from './pages/IngresoCelular.jsx'
+import IngresoOTP from './pages/IngresoOTP.jsx'
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
         <Route path="/entidad/rama" element={<EntidadNacional />} />
         <Route path="/entidad/territorial" element={<EntidadTerritorial />} />
         <Route path="/entidad/confirmar" element={<ConfirmarEntidad />} />
+        <Route path="/verificar" element={<IngresoCelular />} />
+        <Route path="/verificar/codigo" element={<IngresoOTP />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SurveyProvider>
