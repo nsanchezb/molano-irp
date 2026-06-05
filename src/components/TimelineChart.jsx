@@ -79,10 +79,11 @@ export default function TimelineChart({ dailyCounts = [] }) {
 function fillDays(data) {
   if (data.length === 0) return []
   const map = Object.fromEntries(data.map((d) => [d.date, d.count]))
-  const start = new Date(data[0].date + 'T00:00:00')
-  const end   = new Date(data[data.length - 1].date + 'T00:00:00')
+  // Use noon UTC so toISOString() never drifts to adjacent day regardless of browser timezone
+  const start = new Date(data[0].date + 'T12:00:00Z')
+  const end   = new Date(data[data.length - 1].date + 'T12:00:00Z')
   const result = []
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     const key = d.toISOString().slice(0, 10)
     result.push({ date: key, count: map[key] ?? 0 })
   }
