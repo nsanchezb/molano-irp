@@ -33,11 +33,11 @@ const PERFILES = [
 
 export default function Perfil() {
   const navigate = useNavigate()
-  const { set } = useSurvey()
+  const { set, survey } = useSurvey()
 
   function elegir(tipo) {
     set({ surveyType: tipo })
-    navigate('/nivel')
+    navigate(survey.entityId ? '/entidad/confirmar' : '/nivel')
   }
 
   return (

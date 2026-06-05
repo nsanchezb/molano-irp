@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import styles from './QRModal.module.css'
 
-const SURVEY_URL = 'https://indicereputacionpublica.co'
+const SURVEY_BASE = 'https://indicereputacionpublica.co'
 
-export default function QRModal({ entityName, onClose }) {
+export default function QRModal({ entityName, entityId, onClose }) {
   const canvasRef = useRef(null)
-  const [dataUrl, setDataUrl] = useState(null)
+  const [ready, setReady] = useState(false)
+  const qrUrl = entityId ? `${SURVEY_BASE}?entity=${entityId}` : SURVEY_BASE
 
   useEffect(() => {
     function handleKey(e) {
@@ -18,17 +19,20 @@ export default function QRModal({ entityName, onClose }) {
 
   useEffect(() => {
     if (!canvasRef.current) return
-    QRCode.toCanvas(canvasRef.current, SURVEY_URL, {
+    QRCode.toCanvas(canvasRef.current, qrUrl, {
       width: 280,
       margin: 2,
       color: { dark: '#0f2540', light: '#ffffff' },
-    }).then(() => {
-      setDataUrl(canvasRef.current.toDataURL('image/png'))
-    })
-  }, [])
+    }).then(() => setReady(true))
+  }, [qrUrl])
 
-  function handleDownload() {
-    if (!dataUrl) return
+  async function handleDownload() {
+    // Genera versión de alta resolución (1000×1000) para imprimir
+    const dataUrl = await QRCode.toDataURL(qrUrl, {
+      width: 1000,
+      margin: 3,
+      color: { dark: '#0f2540', light: '#ffffff' },
+    })
     const a = document.createElement('a')
     a.href = dataUrl
     const slug = entityName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 40)
@@ -55,10 +59,10 @@ export default function QRModal({ entityName, onClose }) {
           <canvas ref={canvasRef} />
         </div>
 
-        <p className={styles.url}>{SURVEY_URL}</p>
+        <p className={styles.url}>{qrUrl}</p>
 
         <div className={styles.actions}>
-          <button className={styles.btnDescargar} onClick={handleDownload} disabled={!dataUrl}>
+          <button className={styles.btnDescargar} onClick={handleDownload} disabled={!ready}>
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 3v10M6 9l4 4 4-4M4 17h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>

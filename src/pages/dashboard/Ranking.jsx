@@ -380,6 +380,7 @@ export default function Ranking() {
       {qrEntity && (
         <QRModal
           entityName={qrEntity.name}
+          entityId={qrEntity.id}
           onClose={() => setQrEntity(null)}
         />
       )}

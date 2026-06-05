@@ -1,12 +1,50 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useSurvey } from '../context/SurveyContext.jsx'
+import { useEntidades } from '../hooks/useEntidades.js'
 import styles from './Bienvenida.module.css'
+
+function lookupEntity(entData, entityId) {
+  const id = String(entityId)
+  for (const rama of entData.ramas ?? []) {
+    if (rama.t === 's') {
+      for (const sector of rama.d ?? []) {
+        const e = sector.e?.find((x) => String(x.i) === id)
+        if (e) return { id: e.i, name: e.n, department: null }
+      }
+    } else {
+      const e = rama.d?.find((x) => String(x.i) === id)
+      if (e) return { id: e.i, name: e.n, department: null }
+    }
+  }
+  for (const dep of entData.deps ?? []) {
+    const e = dep.e?.find((x) => String(x.i) === id)
+    if (e) return { id: e.i, name: e.n, department: dep.d }
+  }
+  return null
+}
 
 export default function Bienvenida() {
   const navigate = useNavigate()
-  const { set } = useSurvey()
+  const [searchParams] = useSearchParams()
+  const { set, reset } = useSurvey()
   const [aceptado, setAceptado] = useState(false)
+  const entityParam = searchParams.get('entity')
+  const { data: entData } = useEntidades()
+  const [entityInfo, setEntityInfo] = useState(null)
+
+  useEffect(() => {
+    reset()
+  }, [])
+
+  useEffect(() => {
+    if (!entityParam || !entData) return
+    const info = lookupEntity(entData, entityParam)
+    if (info) {
+      setEntityInfo(info)
+      set({ entityId: info.id, entityName: info.name, department: info.department ?? null })
+    }
+  }, [entityParam, entData])
 
   return (
     <div className={styles.page}>
@@ -16,6 +54,16 @@ export default function Bienvenida() {
           <h1 className={styles.titulo}>IRP</h1>
           <p className={styles.subtitulo}>Índice de Reputación Pública</p>
         </header>
+
+        {entityInfo && (
+          <div className={styles.entityBanner}>
+            <span className={styles.entityBannerLabel}>Vas a evaluar</span>
+            <span className={styles.entityBannerName}>{entityInfo.name}</span>
+            {entityInfo.department && (
+              <span className={styles.entityBannerDep}>{entityInfo.department}</span>
+            )}
+          </div>
+        )}
 
         <div className={styles.separador} />
 
