@@ -174,10 +174,30 @@ export default function Ranking() {
       </div>
 
       <div className={styles.body}>
-        {/* Timeline */}
-        {!loading && resultados?.dailyCounts?.length > 0 && (
-          <TimelineChart dailyCounts={resultados.dailyCounts} />
-        )}
+        {/* QR + Timeline row */}
+        <div className={styles.timelineRow}>
+          <div className={styles.timelineChart}>
+            {!loading && resultados?.dailyCounts?.length > 0 && (
+              <TimelineChart dailyCounts={resultados.dailyCounts} />
+            )}
+          </div>
+          <button
+            className={styles.btnQRPrincipal}
+            onClick={() => setQrEntity({ id: null, name: null })}
+            title="Generar código QR"
+          >
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.8" />
+              <rect x="11" y="2" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.8" />
+              <rect x="2" y="11" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.8" />
+              <rect x="11" y="11" width="3" height="3" rx="0.5" fill="currentColor" />
+              <rect x="16" y="11" width="2" height="2" rx="0.5" fill="currentColor" />
+              <rect x="11" y="16" width="2" height="2" rx="0.5" fill="currentColor" />
+              <rect x="15" y="15" width="3" height="3" rx="0.5" fill="currentColor" />
+            </svg>
+            Generar QR
+          </button>
+        </div>
 
         {/* Stats */}
         <div className={styles.stats}>
