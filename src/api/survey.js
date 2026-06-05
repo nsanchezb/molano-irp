@@ -23,14 +23,14 @@ export function clearDraft() {
   try { localStorage.removeItem(DRAFT_KEY) } catch { /* noop */ }
 }
 
-export async function submitSurvey({ token, answers, consentAt }) {
+export async function submitSurvey({ token, answers, consentAt, reactions }) {
   const res = await fetchWithTimeout(`${BASE}/submit-survey`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ answers, consentAt }),
+    body: JSON.stringify({ answers, consentAt, ...(reactions && { reactions }) }),
   })
   const data = await res.json()
   if (!res.ok) throw { status: res.status, ...data }

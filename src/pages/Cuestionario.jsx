@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSurvey } from '../context/SurveyContext.jsx'
 import { getCuestionario, flattenAnswers } from '../data/cuestionarios.js'
 import { submitSurvey, saveDraft, loadDraft, clearDraft } from '../api/survey.js'
+import { getConfig } from '../api/resultados.js'
 import styles from './Cuestionario.module.css'
 
 const ESCALA_MIN = 'Muy bajo'
@@ -29,12 +30,18 @@ export default function Cuestionario() {
     const draft = loadDraft({ surveyType, entityId })
     return draft ? rebuildAnswers2d(dims, draft) : []
   })
+  const [reactions, setReactions] = useState([])
+  const [reactionsEnabled, setReactionsEnabled] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!surveyType || !token) navigate('/', { replace: true })
   }, [surveyType, token, navigate])
+
+  useEffect(() => {
+    getConfig().then((d) => setReactionsEnabled(!!d.reactionsEnabled)).catch(() => {})
+  }, [])
 
   if (!surveyType || !token || !dims.length) return null
 
@@ -57,6 +64,16 @@ export default function Cuestionario() {
     setError(null)
   }
 
+  function toggleReaction(qi, value) {
+    setReactions((prev) => {
+      const next = [...prev]
+      const dr = [...(next[dimIdx] ?? [])]
+      dr[qi] = dr[qi] === value ? null : value
+      next[dimIdx] = dr
+      return next
+    })
+  }
+
   function handleBack() {
     if (dimIdx === 0) navigate(-1)
     else { setDimIdx((i) => i - 1); setError(null) }
@@ -76,10 +93,16 @@ export default function Cuestionario() {
     const flat = flattenAnswers(cuestionario, answers)
     saveDraft({ surveyType, entityId, answers: flat })
 
+    const flatReactions = reactionsEnabled
+      ? cuestionario.dimensiones.flatMap((dim, di) =>
+          dim.preguntas.map((_, qi) => reactions[di]?.[qi] ?? null)
+        )
+      : null
+
     setSubmitting(true)
     setError(null)
     try {
-      await submitSurvey({ token, answers: flat, consentAt })
+      await submitSurvey({ token, answers: flat, consentAt, reactions: flatReactions })
       clearDraft()
       set({ answers: flat })
       navigate('/gracias', { replace: true })
@@ -156,6 +179,32 @@ export default function Cuestionario() {
                   <span className={styles.escalaLabelMax}>{ESCALA_MAX}</span>
                 </div>
               </div>
+
+              {reactionsEnabled && (
+                <div className={styles.reacciones}>
+                  <span className={styles.reaccionesLabel}>¿Esta pregunta fue útil?</span>
+                  <div className={styles.reaccionBtns}>
+                    <button
+                      className={`${styles.btnReaccion} ${reactions[dimIdx]?.[qi] === 1 ? styles.btnLikeActivo : ''}`}
+                      onClick={() => toggleReaction(qi, 1)}
+                      disabled={submitting}
+                      aria-label="Me gusta"
+                      aria-pressed={reactions[dimIdx]?.[qi] === 1}
+                    >
+                      👍 Sí
+                    </button>
+                    <button
+                      className={`${styles.btnReaccion} ${reactions[dimIdx]?.[qi] === -1 ? styles.btnDislikeActivo : ''}`}
+                      onClick={() => toggleReaction(qi, -1)}
+                      disabled={submitting}
+                      aria-label="No me gusta"
+                      aria-pressed={reactions[dimIdx]?.[qi] === -1}
+                    >
+                      👎 No
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

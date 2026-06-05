@@ -11,3 +11,24 @@ export async function getResultados(entityId) {
   if (!res.ok) throw data
   return data
 }
+
+export async function getConfig() {
+  const res = await fetchWithTimeout(`${BASE}/config`, {}, 5000)
+  const data = await res.json()
+  if (!res.ok) throw data
+  return data
+}
+
+export async function updateConfig(enabled, adminHash) {
+  const res = await fetchWithTimeout(`${BASE}/config`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': adminHash,
+    },
+    body: JSON.stringify({ enabled }),
+  }, 5000)
+  const data = await res.json()
+  if (!res.ok) throw data
+  return data
+}

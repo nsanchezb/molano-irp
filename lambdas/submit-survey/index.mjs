@@ -65,11 +65,12 @@ export const handler = async (event) => {
   const now = Math.floor(Date.now() / 1000);
   if (claims.exp < now) return response(401, { error: 'token_expired' });
 
-  let answers, consentAt;
+  let answers, consentAt, reactions;
   try {
     const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-    answers = body?.answers;
+    answers   = body?.answers;
     consentAt = body?.consentAt;
+    reactions = body?.reactions;
   } catch {
     return response(400, { error: 'invalid_body' });
   }
@@ -80,6 +81,12 @@ export const handler = async (event) => {
   if (!answers.every((a) => Number.isInteger(a) && a >= 1 && a <= 5)) {
     return response(400, { error: 'invalid_answers' });
   }
+
+  // Validate optional reactions array (same length as answers, values: 1 | -1 | 0 | null)
+  const validReactions =
+    Array.isArray(reactions) &&
+    reactions.length === answers.length &&
+    reactions.every((r) => r === 1 || r === -1 || r === 0 || r === null);
 
   const { phoneHash, phone, entityId, surveyType } = claims;
   // Un celular puede evaluar múltiples entidades pero solo una vez por entidad,
@@ -97,6 +104,7 @@ export const handler = async (event) => {
       entityId: { S: String(entityId) },
       surveyType: { S: surveyType },
       answers: { S: JSON.stringify(answers) },
+      ...(validReactions && { reactions: { S: JSON.stringify(reactions) } }),
       createdAt: { N: String(now) },
       ...(consentAt && { consentAt: { N: String(consentAt) } }),
     },

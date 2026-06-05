@@ -178,6 +178,58 @@
 .escalaLabelMax { text-align: right; }
 
 
+/* ── Reacciones opcionales ── */
+.reacciones {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.reaccionesLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.reaccionBtns {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btnReaccion {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.btnReaccion:hover:not(:disabled) { border-color: #cbd5e1; background: #f1f5f9; }
+.btnReaccion:disabled { opacity: 0.4; cursor: default; }
+
+.btnLikeActivo {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+.btnDislikeActivo {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
 .error {
   font-size: 0.8rem;
   color: #dc2626;

@@ -1,11 +1,56 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { isAuthenticated, logout } from '../../hooks/useDashboardAuth.js'
-import { getResultados } from '../../api/resultados.js'
+import { getResultados, getConfig, updateConfig } from '../../api/resultados.js'
 import { useEntidades } from '../../hooks/useEntidades.js'
 import TimelineChart from '../../components/TimelineChart.jsx'
 import QRModal from '../../components/QRModal.jsx'
+import { CIUDADANIA, FUNCIONARIO } from '../../data/cuestionarios.js'
 import styles from './Ranking.module.css'
+
+function flatQuestions(cuestionario) {
+  return cuestionario.dimensiones.flatMap((dim) =>
+    dim.preguntas.map((p) => ({ label: p.label, dimNombre: dim.nombre, dimColor: dim.color }))
+  )
+}
+
+function ReaccionesList({ questions, data }) {
+  const max = Math.max(...data.map((d) => d.likes + d.dislikes), 1)
+  return (
+    <div className={styles.reaccionesList}>
+      {questions.map((q, i) => {
+        const d = data[i] ?? { likes: 0, dislikes: 0 }
+        const total = d.likes + d.dislikes
+        const likesPct  = total > 0 ? (d.likes / max) * 100 : 0
+        const dislikesPct = total > 0 ? (d.dislikes / max) * 100 : 0
+        return (
+          <div key={i} className={styles.reaccionRow}>
+            <div className={styles.reaccionInfo}>
+              <span className={styles.reaccionDim} style={{ color: q.dimColor }}>
+                {q.dimNombre}
+              </span>
+              <span className={styles.reaccionLabel}>{q.label}</span>
+            </div>
+            <div className={styles.reaccionBars}>
+              <div className={styles.reaccionBarWrap}>
+                <span className={styles.reaccionCount} style={{ color: '#15803d' }}>👍 {d.likes}</span>
+                <div className={styles.reaccionBarBg}>
+                  <div className={styles.reaccionBarLike} style={{ width: `${likesPct}%` }} />
+                </div>
+              </div>
+              <div className={styles.reaccionBarWrap}>
+                <span className={styles.reaccionCount} style={{ color: '#dc2626' }}>👎 {d.dislikes}</span>
+                <div className={styles.reaccionBarBg}>
+                  <div className={styles.reaccionBarDislike} style={{ width: `${dislikesPct}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 function chipClass(v) {
   if (v == null) return styles.chipNA
@@ -117,6 +162,9 @@ export default function Ranking() {
   const [error, setError] = useState(null)
   const [busqueda, setBusqueda] = useState('')
   const [qrEntity, setQrEntity] = useState(null) // { id, name }
+  const [reactionsEnabled, setReactionsEnabled] = useState(false)
+  const [togglingReactions, setTogglingReactions] = useState(false)
+  const [reaccionesTab, setReaccionesTab] = useState('ciudadania')
   const [filtroTipo, setFiltroTipo] = useState('')   // '' | 'nacional' | 'territorial'
   const [filtroRama, setFiltroRama] = useState('')
   const [filtroSector, setFiltroSector] = useState('')
@@ -129,7 +177,19 @@ export default function Ranking() {
       .then((d) => setResultados(d))
       .catch(() => setError('No se pudieron cargar los resultados. Verifica tu conexión.'))
       .finally(() => setLoading(false))
+    getConfig().then((d) => setReactionsEnabled(!!d.reactionsEnabled)).catch(() => {})
   }, [navigate])
+
+  async function handleToggleReactions() {
+    const newVal = !reactionsEnabled
+    setTogglingReactions(true)
+    try {
+      const hash = sessionStorage.getItem('irp_dash_auth') || ''
+      await updateConfig(newVal, hash)
+      setReactionsEnabled(newVal)
+    } catch { /* ignore toggle errors silently */ }
+    finally { setTogglingReactions(false) }
+  }
 
   // Build lookup: entityId → { tipo, rama, sector, dep }
   const entityMeta = useMemo(() => {
@@ -236,6 +296,20 @@ export default function Ranking() {
       <div className={styles.body}>
         {/* QR row */}
         <div className={styles.qrRow}>
+          <div className={styles.toggleReacciones}>
+            <span className={styles.toggleLabel}>Reacciones por pregunta</span>
+            <button
+              className={`${styles.toggleBtn} ${reactionsEnabled ? styles.toggleBtnOn : ''}`}
+              onClick={handleToggleReactions}
+              disabled={togglingReactions}
+              title={reactionsEnabled ? 'Desactivar reacciones' : 'Activar reacciones'}
+            >
+              <span className={styles.toggleThumb} />
+            </button>
+            <span className={`${styles.toggleStatus} ${reactionsEnabled ? styles.toggleStatusOn : ''}`}>
+              {reactionsEnabled ? 'Activadas' : 'Desactivadas'}
+            </span>
+          </div>
           <button
             className={styles.btnQRPrincipal}
             onClick={() => setQrEntity({ id: null, name: null })}
@@ -448,6 +522,29 @@ export default function Ranking() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* Reactions section */}
+        {!loading && resultados?.reactions && (
+          <div className={styles.reaccionesCard}>
+            <div className={styles.reaccionesHeader}>
+              <span className={styles.reaccionesTitulo}>Reacciones por pregunta</span>
+              <div className={styles.reaccionesTabs}>
+                <button
+                  className={`${styles.tabBtn} ${reaccionesTab === 'ciudadania' ? styles.tabBtnActivo : ''}`}
+                  onClick={() => setReaccionesTab('ciudadania')}
+                >Ciudadanía</button>
+                <button
+                  className={`${styles.tabBtn} ${reaccionesTab === 'funcionario' ? styles.tabBtnActivo : ''}`}
+                  onClick={() => setReaccionesTab('funcionario')}
+                >Funcionario</button>
+              </div>
+            </div>
+            <ReaccionesList
+              questions={flatQuestions(reaccionesTab === 'ciudadania' ? CIUDADANIA : FUNCIONARIO)}
+              data={resultados.reactions[reaccionesTab] ?? []}
+            />
           </div>
         )}
 

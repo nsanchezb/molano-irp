@@ -54,6 +54,8 @@ function response(statusCode, body) {
   };
 }
 
+const QUESTION_COUNTS = { ciudadania: 16, funcionario: 13 };
+
 export const handler = async (event) => {
   const entityIdFilter = event.queryStringParameters?.entityId ?? null;
 
@@ -76,6 +78,11 @@ export const handler = async (event) => {
   // Agrupar respuestas por entidad/tipo y contar por día
   const grouped = {};
   const dayCounts = {};
+  const reactionAccum = {
+    ciudadania:  Array.from({ length: QUESTION_COUNTS.ciudadania  }, () => ({ likes: 0, dislikes: 0 })),
+    funcionario: Array.from({ length: QUESTION_COUNTS.funcionario }, () => ({ likes: 0, dislikes: 0 })),
+  };
+
   for (const item of items) {
     const entityId   = item.entityId?.S;
     const surveyType = item.surveyType?.S;
@@ -90,6 +97,22 @@ export const handler = async (event) => {
     if (createdAt) {
       const day = new Date(createdAt * 1000).toLocaleDateString('sv', { timeZone: 'America/Bogota' });
       dayCounts[day] = (dayCounts[day] ?? 0) + 1;
+    }
+
+    // Aggregate reactions globally
+    const rawReactions = item.reactions?.S;
+    if (rawReactions) {
+      try {
+        const rxns = JSON.parse(rawReactions);
+        if (Array.isArray(rxns)) {
+          rxns.forEach((r, i) => {
+            if (i < reactionAccum[surveyType].length) {
+              if (r === 1)  reactionAccum[surveyType][i].likes++;
+              else if (r === -1) reactionAccum[surveyType][i].dislikes++;
+            }
+          });
+        }
+      } catch { /* skip malformed */ }
     }
   }
 
@@ -134,5 +157,5 @@ export const handler = async (event) => {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, count]) => ({ date, count }));
 
-  return response(200, { entities, total: entities.length, dailyCounts, updatedAt: new Date().toISOString() });
+  return response(200, { entities, total: entities.length, dailyCounts, reactions: reactionAccum, updatedAt: new Date().toISOString() });
 };
