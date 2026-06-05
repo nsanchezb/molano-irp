@@ -28,25 +28,85 @@ function bgClass(v) {
   return styles.bgBajo
 }
 
-function exportCSV(entities, getEntityName) {
-  const header = 'entityId,entidad,irpGlobal,irpCiudadania,nCiudadania,irpFuncionario,nFuncionario'
-  const rows = entities.map((e) => [
-    e.entityId,
-    `"${getEntityName(e.entityId)}"`,
-    e.irpGlobal ?? '',
-    e.ciudadania?.total ?? '',
-    e.ciudadania?.n ?? '',
-    e.funcionario?.total ?? '',
-    e.funcionario?.n ?? '',
-  ].join(','))
-  const csv = '﻿' + [header, ...rows].join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `irp-resultados-${new Date().toISOString().slice(0, 10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+async function exportXLSX(entities, getEntityName) {
+  const XLSX = await import('xlsx')
+  const wb = XLSX.utils.book_new()
+  const fecha = new Date().toLocaleString('es-CO')
+  const totalResp = entities.reduce((s, e) => s + (e.ciudadania?.n ?? 0) + (e.funcionario?.n ?? 0), 0)
+  const irpVals = entities.map((e) => e.irpGlobal).filter((v) => v != null)
+  const irpProm = irpVals.length ? (irpVals.reduce((a, b) => a + b, 0) / irpVals.length) : null
+
+  // ── Hoja 1: Resumen ──
+  const resumenData = [
+    ['IRP — Índice de Reputación Pública'],
+    ['Generado el', fecha],
+    [],
+    ['RESUMEN GENERAL'],
+    ['Entidades evaluadas', entities.length],
+    ['Total respuestas', totalResp],
+    ['IRP promedio', irpProm != null ? +irpProm.toFixed(2) : '—'],
+    ['IRP máximo', irpVals.length ? +Math.max(...irpVals).toFixed(2) : '—'],
+    ['IRP mínimo', irpVals.length ? +Math.min(...irpVals).toFixed(2) : '—'],
+    [],
+    ['TOP 5 ENTIDADES'],
+    ['#', 'Entidad', 'IRP Global'],
+    ...entities.slice(0, 5).map((e, i) => [
+      i + 1,
+      getEntityName(e.entityId),
+      e.irpGlobal != null ? +e.irpGlobal.toFixed(2) : '—',
+    ]),
+  ]
+  const wsResumen = XLSX.utils.aoa_to_sheet(resumenData)
+  wsResumen['!cols'] = [{ wch: 28 }, { wch: 36 }, { wch: 14 }]
+  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen')
+
+  // ── Hoja 2: Resultados individuales ──
+  const headers = [
+    'Posición', 'Entidad',
+    'IRP Global',
+    'IRP Ciudadanía', 'Confianza e Integridad', 'Gestión e Impacto Social',
+    'Transparencia Percibida', 'Comunicación y Pedagogía',
+    'Identidad y Conexión Emocional', 'Estratégica', 'Resp. Ciudadanía',
+    'IRP Funcionario', 'Compensación y Equidad', 'Desarrollo Profesional',
+    'Gobernanza y Liderazgo', 'Innovación Pública', 'Blindaje Institucional', 'Resp. Funcionario',
+    'Total Respuestas',
+  ]
+  const rows = entities.map((e, i) => {
+    const c = e.ciudadania
+    const f = e.funcionario
+    const n = (c?.n ?? 0) + (f?.n ?? 0)
+    return [
+      i + 1,
+      getEntityName(e.entityId),
+      e.irpGlobal != null ? +e.irpGlobal.toFixed(2) : '',
+      c?.total != null ? +c.total.toFixed(2) : '',
+      c?.dims?.confianza     != null ? +c.dims.confianza.toFixed(2)     : '',
+      c?.dims?.gestion       != null ? +c.dims.gestion.toFixed(2)       : '',
+      c?.dims?.transparencia != null ? +c.dims.transparencia.toFixed(2) : '',
+      c?.dims?.comunicacion  != null ? +c.dims.comunicacion.toFixed(2)  : '',
+      c?.dims?.identidad     != null ? +c.dims.identidad.toFixed(2)     : '',
+      c?.dims?.estrategica   != null ? +c.dims.estrategica.toFixed(2)   : '',
+      c?.n ?? '',
+      f?.total != null ? +f.total.toFixed(2) : '',
+      f?.dims?.compensacion  != null ? +f.dims.compensacion.toFixed(2)  : '',
+      f?.dims?.desarrollo    != null ? +f.dims.desarrollo.toFixed(2)    : '',
+      f?.dims?.gobernanza    != null ? +f.dims.gobernanza.toFixed(2)    : '',
+      f?.dims?.innovacion    != null ? +f.dims.innovacion.toFixed(2)    : '',
+      f?.dims?.blindaje      != null ? +f.dims.blindaje.toFixed(2)      : '',
+      f?.n ?? '',
+      n,
+    ]
+  })
+  const wsResultados = XLSX.utils.aoa_to_sheet([headers, ...rows])
+  wsResultados['!cols'] = [
+    { wch: 9 }, { wch: 40 }, { wch: 11 },
+    { wch: 15 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 24 }, { wch: 28 }, { wch: 13 }, { wch: 16 },
+    { wch: 16 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 18 }, { wch: 22 }, { wch: 17 },
+    { wch: 16 },
+  ]
+  XLSX.utils.book_append_sheet(wb, wsResultados, 'Resultados')
+
+  XLSX.writeFile(wb, `irp-resultados-${new Date().toISOString().slice(0, 10)}.xlsx`)
 }
 
 export default function Ranking() {
@@ -296,11 +356,11 @@ export default function Ranking() {
             />
           </div>
           {entities.length > 0 && (
-            <button className={styles.btnExportar} onClick={() => exportCSV(filtradas, getEntityName)}>
+            <button className={styles.btnExportar} onClick={() => exportXLSX(filtradas, getEntityName)}>
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
                 <path d="M10 3v10M6 9l4 4 4-4M4 17h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
-              Exportar CSV
+              Exportar Excel
             </button>
           )}
         </div>
