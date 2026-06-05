@@ -1,7 +1,9 @@
+import { fetchWithTimeout } from './fetchWithTimeout.js'
+
 const BASE = 'https://n36ig3n8n4.execute-api.us-east-1.amazonaws.com/prod'
 
 export async function sendOtp(phone) {
-  const res = await fetch(`${BASE}/send-otp`, {
+  const res = await fetchWithTimeout(`${BASE}/send-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone }),
@@ -12,7 +14,7 @@ export async function sendOtp(phone) {
 }
 
 export async function verifyOtp({ phone, code, entityId, surveyType }) {
-  const res = await fetch(`${BASE}/verify-otp`, {
+  const res = await fetchWithTimeout(`${BASE}/verify-otp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone, code, entityId, surveyType }),

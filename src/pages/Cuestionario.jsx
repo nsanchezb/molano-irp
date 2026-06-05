@@ -2,22 +2,33 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSurvey } from '../context/SurveyContext.jsx'
 import { getCuestionario, flattenAnswers } from '../data/cuestionarios.js'
-import { submitSurvey } from '../api/survey.js'
+import { submitSurvey, saveDraft, loadDraft, clearDraft } from '../api/survey.js'
 import styles from './Cuestionario.module.css'
 
 const ESCALA_MIN = 'Muy bajo'
 const ESCALA_MAX = 'Muy alto'
 
+function errorMsg(err) {
+  if (err?.error === 'timeout') return 'La solicitud tardó demasiado. Verifica tu conexión e inténtalo de nuevo.'
+  if (err?.error === 'network') return 'Sin conexión. Conéctate a internet e inténtalo de nuevo.'
+  if (err?.error === 'token_expired') return 'Tu sesión expiró. Vuelve a verificar tu número de celular.'
+  return 'No pudimos enviar tus respuestas. Inténtalo de nuevo.'
+}
+
 export default function Cuestionario() {
   const navigate = useNavigate()
   const { survey, set } = useSurvey()
-  const { surveyType, token } = survey
+  const { surveyType, token, entityId } = survey
 
   const cuestionario = surveyType ? getCuestionario(surveyType) : null
   const dims = cuestionario?.dimensiones ?? []
 
   const [dimIdx, setDimIdx] = useState(0)
-  const [answers, setAnswers] = useState([])
+  const [answers, setAnswers] = useState(() => {
+    if (!surveyType || !entityId) return []
+    const draft = loadDraft({ surveyType, entityId })
+    return draft ? rebuildAnswers2d(dims, draft) : []
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
@@ -61,15 +72,23 @@ export default function Cuestionario() {
       setError(null)
       return
     }
+
+    const flat = flattenAnswers(cuestionario, answers)
+    saveDraft({ surveyType, entityId, answers: flat })
+
     setSubmitting(true)
     setError(null)
     try {
-      const flat = flattenAnswers(cuestionario, answers)
       await submitSurvey({ token, answers: flat })
+      clearDraft()
       set({ answers: flat })
       navigate('/gracias', { replace: true })
-    } catch {
-      setError('No pudimos enviar tus respuestas. Verifica tu conexión e inténtalo de nuevo.')
+    } catch (err) {
+      if (err?.error === 'token_expired') {
+        navigate('/verificar', { replace: true })
+        return
+      }
+      setError(errorMsg(err))
     } finally {
       setSubmitting(false)
     }
@@ -143,7 +162,7 @@ export default function Cuestionario() {
       </div>
 
       <div className={styles.footer}>
-        {error && <p className={styles.error}>{error}</p>}
+        {error && <p className={styles.error} role="alert">{error}</p>}
         <button
           className={styles.btnSiguiente}
           onClick={handleSiguiente}
@@ -156,4 +175,18 @@ export default function Cuestionario() {
       </div>
     </div>
   )
+}
+
+function rebuildAnswers2d(dims, flat) {
+  const result = []
+  let i = 0
+  for (const dim of dims) {
+    const da = []
+    for (let q = 0; q < dim.preguntas.length; q++) {
+      da[q] = flat[i] ?? null
+      i++
+    }
+    result.push(da)
+  }
+  return result
 }
