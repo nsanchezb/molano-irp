@@ -159,9 +159,7 @@ export default function Cuestionario() {
             </div>
           )
         })}
-      </div>
 
-      <div className={styles.footer}>
         {error && <p className={styles.error} role="alert">{error}</p>}
         <button
           className={styles.btnSiguiente}
