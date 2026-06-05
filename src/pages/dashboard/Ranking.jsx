@@ -58,6 +58,7 @@ export default function Ranking() {
   const [filtroRama, setFiltroRama] = useState('')
   const [filtroSector, setFiltroSector] = useState('')
   const [filtroDep, setFiltroDep] = useState('')
+  const [filtroMun, setFiltroMun] = useState('')
 
   useEffect(() => {
     if (!isAuthenticated()) { navigate('/dashboard/login', { replace: true }); return }
@@ -86,7 +87,7 @@ export default function Ranking() {
     }
     for (const dep of entData.deps ?? []) {
       for (const e of dep.e ?? []) {
-        map[String(e.i)] = { tipo: 'territorial', rama: null, sector: null, dep: dep.d }
+        map[String(e.i)] = { tipo: 'territorial', rama: null, sector: null, dep: dep.d, mun: e.m ?? null }
       }
     }
     return map
@@ -119,6 +120,13 @@ export default function Ranking() {
   const ramaSelObj = useMemo(() => entData?.ramas?.find((r) => r.r === filtroRama), [entData, filtroRama])
   const sectoresOpts = useMemo(() => ramaSelObj?.t === 's' ? ramaSelObj.d.map((s) => s.s) : [], [ramaSelObj])
   const depsOpts = useMemo(() => entData?.deps?.map((d) => d.d) ?? [], [entData])
+  const munOpts = useMemo(() => {
+    if (!filtroDep || !entData) return []
+    const dep = entData.deps?.find((d) => d.d === filtroDep)
+    if (!dep) return []
+    const set = new Set(dep.e.map((e) => e.m).filter(Boolean))
+    return [...set].sort(new Intl.Collator('es').compare)
+  }, [filtroDep, entData])
 
   const entities = resultados?.entities ?? []
 
@@ -132,21 +140,22 @@ export default function Ranking() {
       if (filtroRama && meta?.rama !== filtroRama) return false
       if (filtroSector && meta?.sector !== filtroSector) return false
       if (filtroDep && meta?.dep !== filtroDep) return false
+      if (filtroMun && meta?.mun !== filtroMun) return false
       return true
     })
-  }, [entities, entityMeta, busqueda, filtroTipo, filtroRama, filtroSector, filtroDep])
+  }, [entities, entityMeta, busqueda, filtroTipo, filtroRama, filtroSector, filtroDep, filtroMun])
 
-  const totalResp = entities.reduce((s, e) => s + (e.ciudadania?.n ?? 0) + (e.funcionario?.n ?? 0), 0)
-  const irpProm = entities.length > 0
-    ? (entities.reduce((s, e) => s + (e.irpGlobal ?? 0), 0) / entities.length).toFixed(2)
+  const totalResp = filtradas.reduce((s, e) => s + (e.ciudadania?.n ?? 0) + (e.funcionario?.n ?? 0), 0)
+  const irpProm = filtradas.length > 0
+    ? (filtradas.reduce((s, e) => s + (e.irpGlobal ?? 0), 0) / filtradas.length).toFixed(2)
     : '—'
 
   const maxIrp = entities.length > 0 ? Math.max(...entities.map((e) => e.irpGlobal ?? 0)) : 5
 
   function clearFiltros() {
-    setFiltroTipo(''); setFiltroRama(''); setFiltroSector(''); setFiltroDep('')
+    setFiltroTipo(''); setFiltroRama(''); setFiltroSector(''); setFiltroDep(''); setFiltroMun('')
   }
-  const hayFiltros = filtroTipo || filtroRama || filtroSector || filtroDep
+  const hayFiltros = filtroTipo || filtroRama || filtroSector || filtroDep || filtroMun
 
   return (
     <div className={styles.page}>
@@ -166,8 +175,8 @@ export default function Ranking() {
         <div className={styles.stats}>
           <div className={styles.statCard}>
             <div className={styles.statIcon}>🏛️</div>
-            <div className={styles.statVal}>{entities.length}</div>
-            <div className={styles.statLabel}>Entidades evaluadas</div>
+            <div className={styles.statVal}>{filtradas.length}</div>
+            <div className={styles.statLabel}>{hayFiltros ? 'Entidades filtradas' : 'Entidades evaluadas'}</div>
           </div>
           <div className={styles.statCard}>
             <div className={styles.statIcon}>📋</div>
@@ -220,10 +229,21 @@ export default function Ranking() {
               <select
                 className={styles.selectFiltro}
                 value={filtroDep}
-                onChange={(e) => setFiltroDep(e.target.value)}
+                onChange={(e) => { setFiltroDep(e.target.value); setFiltroMun('') }}
               >
                 <option value="">Todos los departamentos</option>
                 {depsOpts.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            )}
+
+            {filtroTipo === 'territorial' && filtroDep && munOpts.length > 0 && (
+              <select
+                className={styles.selectFiltro}
+                value={filtroMun}
+                onChange={(e) => setFiltroMun(e.target.value)}
+              >
+                <option value="">Todos los municipios</option>
+                {munOpts.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             )}
 
