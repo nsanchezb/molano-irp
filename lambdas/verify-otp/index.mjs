@@ -18,7 +18,7 @@ const ddb = new DynamoDBClient({ region: 'us-east-1' });
 const OTP_TABLE       = process.env.OTP_TABLE     || 'irp-otp';
 const JWT_SECRET_NAME = process.env.JWT_SECRET     || 'irp/jwt';
 const ONURIX_SECRET   = process.env.ONURIX_SECRET  || 'irp/onurix';
-const APP_NAME        = process.env.APP_NAME        || 'IRP';
+const APP_NAME        = process.env.APP_NAME        || 'IRP-Vencejo';
 const MAX_ATTEMPTS    = 3;
 
 let cachedJwt    = null;

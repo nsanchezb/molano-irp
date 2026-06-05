@@ -15,7 +15,7 @@ const ddb = new DynamoDBClient({ region: 'us-east-1' });
 
 const OTP_TABLE        = process.env.OTP_TABLE     || 'irp-otp';
 const ONURIX_SECRET    = process.env.ONURIX_SECRET  || 'irp/onurix';
-const APP_NAME         = process.env.APP_NAME       || 'IRP';
+const APP_NAME         = process.env.APP_NAME       || 'IRP-Vencejo';
 const COOLDOWN_SECONDS = 120;
 const OTP_TTL_SECONDS  = 300;
 
@@ -119,6 +119,7 @@ export const handler = async (event) => {
     return response(503, { error: 'sms_unavailable' });
   }
 
+  console.log('Onurix 2FA response:', JSON.stringify(result));
   if (result.statusCode !== 200 || result.body?.error) {
     return response(503, { error: 'sms_unavailable' });
   }
