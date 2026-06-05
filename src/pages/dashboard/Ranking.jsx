@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { isAuthenticated, logout } from '../../hooks/useDashboardAuth.js'
 import { getResultados } from '../../api/resultados.js'
 import { useEntidades } from '../../hooks/useEntidades.js'
+import TimelineChart from '../../components/TimelineChart.jsx'
 import styles from './Ranking.module.css'
 
 function chipClass(v) {
@@ -171,6 +172,11 @@ export default function Ranking() {
       </div>
 
       <div className={styles.body}>
+        {/* Timeline */}
+        {!loading && resultados?.dailyCounts?.length > 0 && (
+          <TimelineChart dailyCounts={resultados.dailyCounts} />
+        )}
+
         {/* Stats */}
         <div className={styles.stats}>
           <div className={styles.statCard}>
@@ -347,7 +353,7 @@ export default function Ranking() {
         )}
 
         {resultados?.updatedAt && (
-          <div className={styles.updatedAt}>Actualizado: {new Date(resultados.updatedAt * 1000).toLocaleString('es-CO')}</div>
+          <div className={styles.updatedAt}>Actualizado: {new Date(resultados.updatedAt).toLocaleString('es-CO')}</div>
         )}
       </div>
     </div>

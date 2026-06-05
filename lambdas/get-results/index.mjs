@@ -73,18 +73,24 @@ export const handler = async (event) => {
     lastKey = res.LastEvaluatedKey;
   } while (lastKey);
 
-  // Agrupar respuestas por entidad y tipo
+  // Agrupar respuestas por entidad/tipo y contar por día
   const grouped = {};
+  const dayCounts = {};
   for (const item of items) {
-    const entityId  = item.entityId?.S;
+    const entityId   = item.entityId?.S;
     const surveyType = item.surveyType?.S;
-    const raw       = item.answers?.S;
+    const raw        = item.answers?.S;
+    const createdAt  = item.createdAt?.N ? Number(item.createdAt.N) : null;
     if (!entityId || !surveyType || !raw || !DIMS[surveyType]) continue;
     let answers;
     try { answers = JSON.parse(raw); } catch { continue; }
     if (!Array.isArray(answers)) continue;
     if (!grouped[entityId]) grouped[entityId] = { ciudadania: [], funcionario: [] };
     grouped[entityId][surveyType].push(answers);
+    if (createdAt) {
+      const day = new Date(createdAt * 1000).toLocaleDateString('sv', { timeZone: 'America/Bogota' });
+      dayCounts[day] = (dayCounts[day] ?? 0) + 1;
+    }
   }
 
   // Calcular puntajes
@@ -124,5 +130,9 @@ export const handler = async (event) => {
 
   entities.sort((a, b) => b.irpGlobal - a.irpGlobal);
 
-  return response(200, { entities, total: entities.length, updatedAt: new Date().toISOString() });
+  const dailyCounts = Object.entries(dayCounts)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, count]) => ({ date, count }));
+
+  return response(200, { entities, total: entities.length, dailyCounts, updatedAt: new Date().toISOString() });
 };
