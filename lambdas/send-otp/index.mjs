@@ -119,7 +119,6 @@ export const handler = async (event) => {
     return response(503, { error: 'sms_unavailable' });
   }
 
-  console.log('Onurix 2FA response:', JSON.stringify(result));
   if (result.statusCode !== 200 || result.body?.error) {
     return response(503, { error: 'sms_unavailable' });
   }
