@@ -75,18 +75,18 @@ export default function Ranking() {
       if (rama.t === 's') {
         for (const sector of rama.d ?? []) {
           for (const e of sector.e ?? []) {
-            map[String(e.i)] = { tipo: 'nacional', rama: rama.n, sector: sector.n, dep: null }
+            map[String(e.i)] = { tipo: 'nacional', rama: rama.r, sector: sector.s, dep: null }
           }
         }
       } else {
         for (const e of rama.d ?? []) {
-          map[String(e.i)] = { tipo: 'nacional', rama: rama.n, sector: null, dep: null }
+          map[String(e.i)] = { tipo: 'nacional', rama: rama.r, sector: null, dep: null }
         }
       }
     }
     for (const dep of entData.deps ?? []) {
       for (const e of dep.e ?? []) {
-        map[String(e.i)] = { tipo: 'territorial', rama: null, sector: null, dep: dep.n }
+        map[String(e.i)] = { tipo: 'territorial', rama: null, sector: null, dep: dep.d }
       }
     }
     return map
@@ -115,10 +115,10 @@ export default function Ranking() {
   function handleLogout() { logout(); navigate('/dashboard/login', { replace: true }) }
 
   // Filter options derived from entData
-  const ramasOpts = useMemo(() => entData?.ramas?.map((r) => r.n) ?? [], [entData])
-  const ramaSelObj = useMemo(() => entData?.ramas?.find((r) => r.n === filtroRama), [entData, filtroRama])
-  const sectoresOpts = useMemo(() => ramaSelObj?.t === 's' ? ramaSelObj.d.map((s) => s.n) : [], [ramaSelObj])
-  const depsOpts = useMemo(() => entData?.deps?.map((d) => d.n) ?? [], [entData])
+  const ramasOpts = useMemo(() => entData?.ramas?.map((r) => r.r) ?? [], [entData])
+  const ramaSelObj = useMemo(() => entData?.ramas?.find((r) => r.r === filtroRama), [entData, filtroRama])
+  const sectoresOpts = useMemo(() => ramaSelObj?.t === 's' ? ramaSelObj.d.map((s) => s.s) : [], [ramaSelObj])
+  const depsOpts = useMemo(() => entData?.deps?.map((d) => d.d) ?? [], [entData])
 
   const entities = resultados?.entities ?? []
 
