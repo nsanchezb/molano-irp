@@ -13,8 +13,9 @@ import {
 const sm  = new SecretsManagerClient({ region: 'us-east-1' });
 const ddb = new DynamoDBClient({ region: 'us-east-1' });
 
-const OTP_TABLE       = process.env.OTP_TABLE    || 'irp-otp';
-const ONURIX_SECRET   = process.env.ONURIX_SECRET || 'irp/onurix';
+const OTP_TABLE        = process.env.OTP_TABLE     || 'irp-otp';
+const ONURIX_SECRET    = process.env.ONURIX_SECRET  || 'irp/onurix';
+const APP_NAME         = process.env.APP_NAME       || 'IRP';
 const COOLDOWN_SECONDS = 120;
 const OTP_TTL_SECONDS  = 300;
 
@@ -31,20 +32,14 @@ function hashPhone(phone) {
   return createHash('sha256').update(phone).digest('hex');
 }
 
-function send2FA(client, key, phone, expSeconds) {
+function onurixRequest(path, params) {
   return new Promise((resolve, reject) => {
-    const body = new URLSearchParams({
-      _client: String(client),
-      _key:    key,
-      numero:  phone,
-      tiempo_expiracion: String(expSeconds),
-    }).toString();
-
+    const body = new URLSearchParams(params).toString();
     const req = https.request(
       {
         hostname: 'www.onurix.com',
-        path:     '/api/v1/sms/send_code_2fa_sms',
-        method:   'POST',
+        path,
+        method: 'POST',
         headers: {
           'Content-Type':   'application/x-www-form-urlencoded',
           'Content-Length': Buffer.byteLength(body),
@@ -55,7 +50,7 @@ function send2FA(client, key, phone, expSeconds) {
         let data = '';
         res.on('data', (chunk) => (data += chunk));
         res.on('end', () => {
-          try { resolve(JSON.parse(data)); }
+          try { resolve({ statusCode: res.statusCode, body: JSON.parse(data) }); }
           catch { reject(new Error('Respuesta inválida de Onurix')); }
         });
       }
@@ -90,9 +85,9 @@ export const handler = async (event) => {
     return response(400, { error: 'invalid_phone' });
   }
 
-  const fullPhone  = `57${phone}`;
-  const phoneHash  = hashPhone(fullPhone);
-  const now        = Math.floor(Date.now() / 1000);
+  const fullPhone = `57${phone}`;
+  const phoneHash = hashPhone(fullPhone);
+  const now       = Math.floor(Date.now() / 1000);
 
   // Anti-spam: verificar cooldown
   const existing = await ddb.send(new GetItemCommand({
@@ -110,30 +105,32 @@ export const handler = async (event) => {
     }
   }
 
-  // Enviar 2FA via Onurix
+  // Enviar OTP via Onurix 2FA
   const config = await getOnurixConfig();
-  let onurixRes;
+  let result;
   try {
-    onurixRes = await send2FA(config.ONURIX_CLIENT, config.ONURIX_KEY, fullPhone, OTP_TTL_SECONDS);
+    result = await onurixRequest('/api/v1/sms/2fa/send', {
+      client:     String(config.ONURIX_CLIENT),
+      key:        config.ONURIX_KEY,
+      phone:      fullPhone,
+      'app-name': APP_NAME,
+    });
   } catch {
     return response(503, { error: 'sms_unavailable' });
   }
 
-  // Onurix retorna id_transaccion en caso de éxito
-  const idTransaccion = onurixRes?.id_transaccion ?? onurixRes?.idTransaccion ?? null;
-  if (!idTransaccion || onurixRes?.error) {
+  if (result.statusCode !== 200 || result.body?.error) {
     return response(503, { error: 'sms_unavailable' });
   }
 
-  // Guardar id_transaccion en DynamoDB
+  // Guardar registro en DynamoDB (para cooldown, TTL y control de intentos)
   await ddb.send(new PutItemCommand({
     TableName: OTP_TABLE,
     Item: {
-      phoneHash:      { S: phoneHash },
-      idTransaccion:  { S: String(idTransaccion) },
-      attempts:       { N: '0' },
-      createdAt:      { N: String(now) },
-      ttl:            { N: String(now + OTP_TTL_SECONDS) },
+      phoneHash: { S: phoneHash },
+      attempts:  { N: '0' },
+      createdAt: { N: String(now) },
+      ttl:       { N: String(now + OTP_TTL_SECONDS) },
     },
   }));
 
