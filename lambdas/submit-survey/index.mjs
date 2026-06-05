@@ -94,7 +94,6 @@ export const handler = async (event) => {
       surveyType: { S: surveyType },
       answers: { S: JSON.stringify(answers) },
       createdAt: { N: String(now) },
-      ttl: { N: String(now + 60 * 60 * 24 * 365) },
     },
     ConditionExpression: 'attribute_not_exists(responseId)',
   })).catch((err) => {
