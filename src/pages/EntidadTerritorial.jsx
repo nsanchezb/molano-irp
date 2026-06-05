@@ -67,7 +67,6 @@ export default function EntidadTerritorial() {
         placeholder="Buscar entidad..."
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
-        autoFocus
       />
       <div className={styles.lista}>
         {filtradas.length === 0 && (
