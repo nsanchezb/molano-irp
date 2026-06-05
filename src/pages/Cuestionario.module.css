@@ -168,7 +168,7 @@
 
 /* ── Footer ── */
 .footer {
-  padding: 0.9rem 1.25rem 1.5rem;
+  padding: 0.9rem 1.25rem max(1.5rem, env(safe-area-inset-bottom));
   background: white;
   border-top: 1px solid #e2e8f0;
   display: flex;
