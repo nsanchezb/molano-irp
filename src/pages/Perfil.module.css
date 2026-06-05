@@ -1,0 +1,146 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem 1rem 2rem;
+  background: linear-gradient(160deg, #0f2540 0%, #1a3c5e 50%, #1e4976 100%);
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0;
+  width: fit-content;
+  transition: color 0.15s;
+}
+
+.back:hover { color: #1a3c5e; }
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.paso {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+
+.titulo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1a3c5e;
+  line-height: 1.2;
+}
+
+.sub {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Opciones */
+.opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.1rem 1rem;
+  width: 100%;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  min-height: 80px;
+}
+
+.opcion:hover {
+  border-color: #1a3c5e;
+  background: #f0f4f8;
+}
+
+.opcion:active {
+  transform: scale(0.98);
+}
+
+.icono {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: #1a3c5e;
+  color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.opcionTexto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.opcionTitulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a2332;
+}
+
+.opcionDesc {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+/* Nota */
+.nota {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.5;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.nota strong { color: #64748b; }
+
+@media (min-width: 480px) {
+  .card { padding: 2rem; }
+  .titulo { font-size: 1.75rem; }
+}
