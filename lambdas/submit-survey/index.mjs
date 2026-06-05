@@ -82,8 +82,10 @@ export const handler = async (event) => {
   }
 
   const { phoneHash, phone, entityId, surveyType } = claims;
+  // Un celular puede evaluar múltiples entidades pero solo una vez por entidad,
+  // sin importar el rol (ciudadania o funcionario).
   const responseId = createHash('sha256')
-    .update(`${phoneHash}:${entityId}:${surveyType}`)
+    .update(`${phoneHash}:${entityId}`)
     .digest('hex');
 
   await ddb.send(new PutItemCommand({
