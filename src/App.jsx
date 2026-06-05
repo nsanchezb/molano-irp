@@ -11,6 +11,9 @@ import IngresoCelular from './pages/IngresoCelular.jsx'
 import IngresoOTP from './pages/IngresoOTP.jsx'
 import Cuestionario from './pages/Cuestionario.jsx'
 import Gracias from './pages/Gracias.jsx'
+import DashboardLogin from './pages/dashboard/Login.jsx'
+import DashboardRanking from './pages/dashboard/Ranking.jsx'
+import DashboardDetalle from './pages/dashboard/Detalle.jsx'
 
 export default function App() {
   return (
@@ -27,6 +30,9 @@ export default function App() {
         <Route path="/verificar/codigo" element={<IngresoOTP />} />
         <Route path="/cuestionario" element={<Cuestionario />} />
         <Route path="/gracias" element={<Gracias />} />
+        <Route path="/dashboard/login" element={<DashboardLogin />} />
+        <Route path="/dashboard" element={<DashboardRanking />} />
+        <Route path="/dashboard/entidad/:entityId" element={<DashboardDetalle />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SurveyProvider>
