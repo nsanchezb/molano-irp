@@ -8,6 +8,8 @@ import EntidadTerritorial from './pages/EntidadTerritorial.jsx'
 import ConfirmarEntidad from './pages/ConfirmarEntidad.jsx'
 import IngresoCelular from './pages/IngresoCelular.jsx'
 import IngresoOTP from './pages/IngresoOTP.jsx'
+import Cuestionario from './pages/Cuestionario.jsx'
+import Gracias from './pages/Gracias.jsx'
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="/entidad/confirmar" element={<ConfirmarEntidad />} />
         <Route path="/verificar" element={<IngresoCelular />} />
         <Route path="/verificar/codigo" element={<IngresoOTP />} />
+        <Route path="/cuestionario" element={<Cuestionario />} />
+        <Route path="/gracias" element={<Gracias />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SurveyProvider>

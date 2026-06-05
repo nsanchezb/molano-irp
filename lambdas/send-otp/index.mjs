@@ -1,5 +1,5 @@
 import https from 'https';
-import { createHash } from 'crypto';
+import { randomInt, createHash } from 'crypto';
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
@@ -35,24 +35,23 @@ function hashCode(code) {
   return createHash('sha256').update(code).digest('hex');
 }
 
-function extractCode(smsText) {
-  const match = smsText.match(/\b(\d{6})\b/);
-  return match ? match[1] : null;
+function generateCode() {
+  return String(randomInt(100000, 999999));
 }
 
-function callOnurix(client, key, appName, phone) {
+function sendSms(client, key, phone, message) {
   return new Promise((resolve, reject) => {
     const body = new URLSearchParams({
       client: String(client),
       key,
-      'app-name': appName,
       phone,
+      sms: message,
     }).toString();
 
     const req = https.request(
       {
         hostname: 'www.onurix.com',
-        path: '/api/v1/sms/2fa/send',
+        path: '/api/v1/sms/send',
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -64,11 +63,8 @@ function callOnurix(client, key, appName, phone) {
         let data = '';
         res.on('data', (chunk) => (data += chunk));
         res.on('end', () => {
-          try {
-            resolve(JSON.parse(data));
-          } catch {
-            reject(new Error('Respuesta inválida de Onurix'));
-          }
+          try { resolve(JSON.parse(data)); }
+          catch { reject(new Error('Respuesta inválida de Onurix')); }
         });
       }
     );
@@ -122,26 +118,24 @@ export const handler = async (event) => {
     }
   }
 
-  // Llamar a Onurix
+  // Generar código y enviar SMS
+  const code = generateCode();
   const config = await getOnurixConfig();
+
   let onurixRes;
   try {
-    onurixRes = await callOnurix(
+    onurixRes = await sendSms(
       config.ONURIX_CLIENT,
       config.ONURIX_KEY,
-      config.ONURIX_APP_NAME,
-      fullPhone
+      fullPhone,
+      `Tu código de verificación IRP es: ${code}. Válido por 5 minutos. No lo compartas.`
     );
   } catch {
     return response(503, { error: 'sms_unavailable' });
   }
 
-  if (onurixRes.status !== 'success' || !onurixRes.data?.[0]?.sms) {
-    return response(503, { error: 'sms_unavailable' });
-  }
-
-  const code = extractCode(onurixRes.data[0].sms);
-  if (!code) {
+  // Onurix retorna status:1 en éxito
+  if (!onurixRes.status || onurixRes.error) {
     return response(503, { error: 'sms_unavailable' });
   }
 

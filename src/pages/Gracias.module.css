@@ -1,0 +1,88 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #1a3c5e 0%, #0f2540 100%);
+  padding: 2rem 1.25rem;
+}
+
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.icono {
+  width: 72px;
+  height: 72px;
+  background: #f0fdf4;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.titulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a2332;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitulo {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.entidad {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a3c5e;
+  width: 100%;
+}
+
+.divider {
+  width: 48px;
+  height: 3px;
+  background: #1a3c5e;
+  border-radius: 2px;
+}
+
+.mensaje {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.btnNuevo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a3c5e;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.9rem 1.5rem;
+  border-radius: 14px;
+  width: 100%;
+  min-height: 50px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.btnNuevo:hover { background: #0f2540; }
