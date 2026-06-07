@@ -1,0 +1,204 @@
+{
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0, "y": 0, "width": 24, "height": 1,
+      "properties": { "markdown": "# IRP — Índice de Reputación Pública · Producción" }
+    },
+    {
+      "type": "text",
+      "x": 0, "y": 1, "width": 24, "height": 1,
+      "properties": { "markdown": "## Computo — Funciones Lambda (PaaS)" }
+    },
+    {
+      "type": "metric",
+      "x": 0, "y": 2, "width": 8, "height": 6,
+      "properties": {
+        "title": "Invocaciones por funcion / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/Lambda", "Invocations", "FunctionName", "irp-get-results",   {"label": "get-results"}],
+          ["AWS/Lambda", "Invocations", "FunctionName", "irp-submit-survey", {"label": "submit-survey"}],
+          ["AWS/Lambda", "Invocations", "FunctionName", "irp-send-otp",      {"label": "send-otp"}],
+          ["AWS/Lambda", "Invocations", "FunctionName", "irp-verify-otp",    {"label": "verify-otp"}],
+          ["AWS/Lambda", "Invocations", "FunctionName", "irp-get-config",    {"label": "get-config"}],
+          ["AWS/Lambda", "Invocations", "FunctionName", "irp-update-config", {"label": "update-config"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8, "y": 2, "width": 8, "height": 6,
+      "properties": {
+        "title": "Errores por funcion / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/Lambda", "Errors", "FunctionName", "irp-get-results",   {"label": "get-results",   "color": "#d62728"}],
+          ["AWS/Lambda", "Errors", "FunctionName", "irp-submit-survey", {"label": "submit-survey", "color": "#ff7f0e"}],
+          ["AWS/Lambda", "Errors", "FunctionName", "irp-send-otp",      {"label": "send-otp",      "color": "#9467bd"}],
+          ["AWS/Lambda", "Errors", "FunctionName", "irp-verify-otp",    {"label": "verify-otp",    "color": "#8c564b"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16, "y": 2, "width": 8, "height": 6,
+      "properties": {
+        "title": "Duracion promedio (ms)",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Average",
+        "metrics": [
+          ["AWS/Lambda", "Duration", "FunctionName", "irp-get-results"],
+          ["AWS/Lambda", "Duration", "FunctionName", "irp-submit-survey"],
+          ["AWS/Lambda", "Duration", "FunctionName", "irp-send-otp"],
+          ["AWS/Lambda", "Duration", "FunctionName", "irp-verify-otp"]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "text",
+      "x": 0, "y": 8, "width": 24, "height": 1,
+      "properties": { "markdown": "## API — API Gateway HTTP" }
+    },
+    {
+      "type": "metric",
+      "x": 0, "y": 9, "width": 8, "height": 6,
+      "properties": {
+        "title": "Solicitudes totales / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/ApiGateway", "Count", "ApiId", "n36ig3n8n4", {"label": "Requests"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8, "y": 9, "width": 8, "height": 6,
+      "properties": {
+        "title": "Errores 4xx / 5xx / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/ApiGateway", "4xx", "ApiId", "n36ig3n8n4", {"label": "4xx", "color": "#ff7f0e"}],
+          ["AWS/ApiGateway", "5xx", "ApiId", "n36ig3n8n4", {"label": "5xx", "color": "#d62728"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16, "y": 9, "width": 8, "height": 6,
+      "properties": {
+        "title": "Latencia P50 / P99 (ms)",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400,
+        "metrics": [
+          ["AWS/ApiGateway", "Latency", "ApiId", "n36ig3n8n4", {"stat": "p50", "label": "p50"}],
+          ["AWS/ApiGateway", "Latency", "ApiId", "n36ig3n8n4", {"stat": "p99", "label": "p99", "color": "#d62728"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "text",
+      "x": 0, "y": 15, "width": 24, "height": 1,
+      "properties": { "markdown": "## Base de datos — DynamoDB (NoSQL serverless)" }
+    },
+    {
+      "type": "metric",
+      "x": 0, "y": 16, "width": 8, "height": 6,
+      "properties": {
+        "title": "irp-responses — RCU / WCU / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/DynamoDB", "ConsumedReadCapacityUnits",  "TableName", "irp-responses", {"label": "Lecturas (RCU)"}],
+          ["AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "irp-responses", {"label": "Escrituras (WCU)", "color": "#ff7f0e"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8, "y": 16, "width": 8, "height": 6,
+      "properties": {
+        "title": "irp-otp — RCU / WCU / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/DynamoDB", "ConsumedReadCapacityUnits",  "TableName", "irp-otp", {"label": "Lecturas (RCU)"}],
+          ["AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "irp-otp", {"label": "Escrituras (WCU)", "color": "#ff7f0e"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16, "y": 16, "width": 8, "height": 6,
+      "properties": {
+        "title": "irp-config — RCU / WCU / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/DynamoDB", "ConsumedReadCapacityUnits",  "TableName", "irp-config", {"label": "Lecturas (RCU)"}],
+          ["AWS/DynamoDB", "ConsumedWriteCapacityUnits", "TableName", "irp-config", {"label": "Escrituras (WCU)", "color": "#ff7f0e"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "text",
+      "x": 0, "y": 22, "width": 24, "height": 1,
+      "properties": { "markdown": "## CDN / Frontend — CloudFront + S3" }
+    },
+    {
+      "type": "metric",
+      "x": 0, "y": 23, "width": 8, "height": 6,
+      "properties": {
+        "title": "CloudFront — Solicitudes / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/CloudFront", "Requests", "DistributionId", "E3K6W5B2FPNCGQ", "Region", "Global", {"label": "Requests"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8, "y": 23, "width": 8, "height": 6,
+      "properties": {
+        "title": "CloudFront — Tasa de error / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Average",
+        "metrics": [
+          ["AWS/CloudFront", "TotalErrorRate", "DistributionId", "E3K6W5B2FPNCGQ", "Region", "Global", {"label": "Error total %", "color": "#d62728"}],
+          ["AWS/CloudFront", "4xxErrorRate",   "DistributionId", "E3K6W5B2FPNCGQ", "Region", "Global", {"label": "4xx %",         "color": "#ff7f0e"}],
+          ["AWS/CloudFront", "5xxErrorRate",   "DistributionId", "E3K6W5B2FPNCGQ", "Region", "Global", {"label": "5xx %",         "color": "#9467bd"}]
+        ],
+        "region": "us-east-1"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16, "y": 23, "width": 8, "height": 6,
+      "properties": {
+        "title": "CloudFront — Bytes transferidos / dia",
+        "view": "timeSeries", "stacked": false,
+        "period": 86400, "stat": "Sum",
+        "metrics": [
+          ["AWS/CloudFront", "BytesDownloaded", "DistributionId", "E3K6W5B2FPNCGQ", "Region", "Global", {"label": "Bytes descargados"}],
+          ["AWS/CloudFront", "BytesUploaded",   "DistributionId", "E3K6W5B2FPNCGQ", "Region", "Global", {"label": "Bytes subidos", "color": "#ff7f0e"}]
+        ],
+        "region": "us-east-1"
+      }
+    }
+  ]
+}
