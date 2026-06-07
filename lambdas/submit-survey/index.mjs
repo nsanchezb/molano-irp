@@ -1,27 +1,10 @@
 import { createHmac, createHash } from 'crypto';
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from '@aws-sdk/client-secrets-manager';
-import {
-  DynamoDBClient,
-  PutItemCommand,
-} from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
-const sm = new SecretsManagerClient({ region: 'us-east-1' });
 const ddb = new DynamoDBClient({ region: 'us-east-1' });
 
 const RESPONSES_TABLE = process.env.RESPONSES_TABLE || 'irp-responses';
-const JWT_SECRET_NAME = process.env.JWT_SECRET || 'irp/jwt';
-
-let cachedJwt = null;
-
-async function getJwtSecret() {
-  if (cachedJwt) return cachedJwt;
-  const res = await sm.send(new GetSecretValueCommand({ SecretId: JWT_SECRET_NAME }));
-  cachedJwt = JSON.parse(res.SecretString).JWT_SECRET;
-  return cachedJwt;
-}
+const JWT_SECRET      = process.env.JWT_SECRET;
 
 function base64url(str) {
   return str.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
@@ -58,8 +41,7 @@ export const handler = async (event) => {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!token) return response(401, { error: 'unauthorized' });
 
-  const secret = await getJwtSecret();
-  const claims = verifyJwt(token, secret);
+  const claims = verifyJwt(token, JWT_SECRET);
   if (!claims) return response(401, { error: 'invalid_token' });
 
   const now = Math.floor(Date.now() / 1000);

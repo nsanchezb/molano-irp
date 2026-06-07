@@ -1,42 +1,15 @@
 import https from 'https';
-import { createHash } from 'crypto';
-import { createHmac } from 'crypto';
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from '@aws-sdk/client-secrets-manager';
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  UpdateItemCommand,
-  DeleteItemCommand,
-} from '@aws-sdk/client-dynamodb';
+import { createHash, createHmac } from 'crypto';
+import { DynamoDBClient, GetItemCommand, UpdateItemCommand, DeleteItemCommand } from '@aws-sdk/client-dynamodb';
 
-const sm  = new SecretsManagerClient({ region: 'us-east-1' });
 const ddb = new DynamoDBClient({ region: 'us-east-1' });
 
-const OTP_TABLE       = process.env.OTP_TABLE     || 'irp-otp';
-const JWT_SECRET_NAME = process.env.JWT_SECRET     || 'irp/jwt';
-const ONURIX_SECRET   = process.env.ONURIX_SECRET  || 'irp/onurix';
-const APP_NAME        = process.env.APP_NAME        || 'IRP-Vencejo';
-const MAX_ATTEMPTS    = 3;
-
-let cachedJwt    = null;
-let cachedOnurix = null;
-
-async function getJwtSecret() {
-  if (cachedJwt) return cachedJwt;
-  const res = await sm.send(new GetSecretValueCommand({ SecretId: JWT_SECRET_NAME }));
-  cachedJwt = JSON.parse(res.SecretString).JWT_SECRET;
-  return cachedJwt;
-}
-
-async function getOnurixConfig() {
-  if (cachedOnurix) return cachedOnurix;
-  const res = await sm.send(new GetSecretValueCommand({ SecretId: ONURIX_SECRET }));
-  cachedOnurix = JSON.parse(res.SecretString);
-  return cachedOnurix;
-}
+const OTP_TABLE     = process.env.OTP_TABLE      || 'irp-otp';
+const JWT_SECRET    = process.env.JWT_SECRET;
+const ONURIX_CLIENT = process.env.ONURIX_CLIENT;
+const ONURIX_KEY    = process.env.ONURIX_KEY;
+const APP_NAME      = process.env.APP_NAME       || 'IRP-Vencejo';
+const MAX_ATTEMPTS  = 3;
 
 function hashPhone(phone) {
   return createHash('sha256').update(phone).digest('hex');
@@ -61,7 +34,7 @@ function onurixRequest(path, params) {
         res.on('data', (chunk) => (data += chunk));
         res.on('end', () => {
           try { resolve({ statusCode: res.statusCode, body: JSON.parse(data) }); }
-          catch { reject(new Error('Respuesta inválida de Onurix')); }
+          catch { reject(new Error('Respuesta invalida de Onurix')); }
         });
       }
     );
@@ -124,7 +97,6 @@ export const handler = async (event) => {
   const phoneHash = hashPhone(fullPhone);
   const now       = Math.floor(Date.now() / 1000);
 
-  // Verificar que existe un OTP activo en DynamoDB
   const record = await ddb.send(new GetItemCommand({
     TableName: OTP_TABLE,
     Key: { phoneHash: { S: phoneHash } },
@@ -134,22 +106,17 @@ export const handler = async (event) => {
 
   const ttl = parseInt(record.Item.ttl?.N || '0', 10);
   if (now > ttl) {
-    await ddb.send(new DeleteItemCommand({
-      TableName: OTP_TABLE,
-      Key: { phoneHash: { S: phoneHash } },
-    }));
+    await ddb.send(new DeleteItemCommand({ TableName: OTP_TABLE, Key: { phoneHash: { S: phoneHash } } }));
     return response(404, { error: 'expired' });
   }
 
   const attempts = parseInt(record.Item.attempts?.N || '0', 10);
 
-  // Verificar código con Onurix 2FA
-  const config = await getOnurixConfig();
   let result;
   try {
     result = await onurixRequest('/api/v1/2fa/verification-code', {
-      client:     String(config.ONURIX_CLIENT),
-      key:        config.ONURIX_KEY,
+      client:     ONURIX_CLIENT,
+      key:        ONURIX_KEY,
       phone:      fullPhone,
       'app-name': APP_NAME,
       code,
@@ -163,36 +130,23 @@ export const handler = async (event) => {
   if (!verified) {
     const newAttempts = attempts + 1;
     if (newAttempts >= MAX_ATTEMPTS) {
-      await ddb.send(new DeleteItemCommand({
-        TableName: OTP_TABLE,
-        Key: { phoneHash: { S: phoneHash } },
-      }));
-      return response(403, { error: 'locked', message: 'Demasiados intentos. Solicita un nuevo código.' });
+      await ddb.send(new DeleteItemCommand({ TableName: OTP_TABLE, Key: { phoneHash: { S: phoneHash } } }));
+      return response(403, { error: 'locked', message: 'Demasiados intentos. Solicita un nuevo codigo.' });
     }
-
     await ddb.send(new UpdateItemCommand({
       TableName: OTP_TABLE,
       Key: { phoneHash: { S: phoneHash } },
       UpdateExpression: 'SET attempts = :a',
       ExpressionAttributeValues: { ':a': { N: String(newAttempts) } },
     }));
-
-    return response(401, {
-      error: 'invalid_code',
-      attemptsLeft: MAX_ATTEMPTS - newAttempts,
-    });
+    return response(401, { error: 'invalid_code', attemptsLeft: MAX_ATTEMPTS - newAttempts });
   }
 
-  // Código correcto — eliminar registro y emitir JWT
-  await ddb.send(new DeleteItemCommand({
-    TableName: OTP_TABLE,
-    Key: { phoneHash: { S: phoneHash } },
-  }));
+  await ddb.send(new DeleteItemCommand({ TableName: OTP_TABLE, Key: { phoneHash: { S: phoneHash } } }));
 
-  const secret = await getJwtSecret();
-  const token  = createJwt(
+  const token = createJwt(
     { phoneHash, phone: fullPhone, entityId, surveyType, iat: now, exp: now + 3600 },
-    secret
+    JWT_SECRET
   );
 
   return response(200, { verified: true, token });

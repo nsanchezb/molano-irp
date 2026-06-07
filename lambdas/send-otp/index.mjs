@@ -1,32 +1,15 @@
 import https from 'https';
 import { createHash } from 'crypto';
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from '@aws-sdk/client-secrets-manager';
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  PutItemCommand,
-} from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
-const sm  = new SecretsManagerClient({ region: 'us-east-1' });
 const ddb = new DynamoDBClient({ region: 'us-east-1' });
 
-const OTP_TABLE        = process.env.OTP_TABLE     || 'irp-otp';
-const ONURIX_SECRET    = process.env.ONURIX_SECRET  || 'irp/onurix';
-const APP_NAME         = process.env.APP_NAME       || 'IRP-Vencejo';
+const OTP_TABLE        = process.env.OTP_TABLE   || 'irp-otp';
+const ONURIX_CLIENT    = process.env.ONURIX_CLIENT;
+const ONURIX_KEY       = process.env.ONURIX_KEY;
+const APP_NAME         = process.env.APP_NAME    || 'IRP-Vencejo';
 const COOLDOWN_SECONDS = 120;
 const OTP_TTL_SECONDS  = 300;
-
-let cachedOnurix = null;
-
-async function getOnurixConfig() {
-  if (cachedOnurix) return cachedOnurix;
-  const res = await sm.send(new GetSecretValueCommand({ SecretId: ONURIX_SECRET }));
-  cachedOnurix = JSON.parse(res.SecretString);
-  return cachedOnurix;
-}
 
 function hashPhone(phone) {
   return createHash('sha256').update(phone).digest('hex');
@@ -51,7 +34,7 @@ function onurixRequest(path, params) {
         res.on('data', (chunk) => (data += chunk));
         res.on('end', () => {
           try { resolve({ statusCode: res.statusCode, body: JSON.parse(data) }); }
-          catch { reject(new Error('Respuesta inválida de Onurix')); }
+          catch { reject(new Error('Respuesta invalida de Onurix')); }
         });
       }
     );
@@ -89,7 +72,6 @@ export const handler = async (event) => {
   const phoneHash = hashPhone(fullPhone);
   const now       = Math.floor(Date.now() / 1000);
 
-  // Anti-spam: verificar cooldown
   const existing = await ddb.send(new GetItemCommand({
     TableName: OTP_TABLE,
     Key: { phoneHash: { S: phoneHash } },
@@ -105,13 +87,11 @@ export const handler = async (event) => {
     }
   }
 
-  // Enviar OTP via Onurix 2FA
-  const config = await getOnurixConfig();
   let result;
   try {
     result = await onurixRequest('/api/v1/sms/2fa/send', {
-      client:     String(config.ONURIX_CLIENT),
-      key:        config.ONURIX_KEY,
+      client:     ONURIX_CLIENT,
+      key:        ONURIX_KEY,
       phone:      fullPhone,
       'app-name': APP_NAME,
     });
@@ -123,7 +103,6 @@ export const handler = async (event) => {
     return response(503, { error: 'sms_unavailable' });
   }
 
-  // Guardar registro en DynamoDB (para cooldown, TTL y control de intentos)
   await ddb.send(new PutItemCommand({
     TableName: OTP_TABLE,
     Item: {
