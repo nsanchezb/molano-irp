@@ -14,6 +14,10 @@ const ONURIX_CLIENT    = process.env.ONURIX_CLIENT;
 const ONURIX_KEY       = process.env.ONURIX_KEY;
 const APP_NAME         = process.env.APP_NAME    || 'IRP-Vencejo';
 const COOLDOWN_SECONDS = 120;
+
+if (!ONURIX_CLIENT || !ONURIX_KEY) {
+  throw new Error('irp-send-otp: ONURIX_CLIENT and ONURIX_KEY are required env vars');
+}
 const OTP_TTL_SECONDS  = 300;
 const IP_WINDOW        = 300;  // 5 minutos
 const IP_MAX_REQUESTS  = 10;
@@ -97,6 +101,7 @@ export const handler = async (event) => {
   // Rate limit por IP: máximo 10 OTPs por IP cada 5 minutos
   const ipCount = await checkIpRateLimit(ip, now);
   if (ipCount > IP_MAX_REQUESTS) {
+    console.log(JSON.stringify({ event: 'IP_RATE_LIMITED', ip, count: ipCount }));
     return response(429, { error: 'too_many_requests', retryAfter: IP_WINDOW });
   }
 

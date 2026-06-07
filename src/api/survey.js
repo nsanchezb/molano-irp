@@ -1,6 +1,6 @@
 import { fetchWithTimeout } from './fetchWithTimeout.js'
 
-const BASE = 'https://n36ig3n8n4.execute-api.us-east-1.amazonaws.com/prod'
+const BASE = 'https://indicereputacionpublica.co/prod'
 const DRAFT_KEY = 'irp_draft_answers'
 
 export function saveDraft({ surveyType, entityId, answers }) {

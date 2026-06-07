@@ -1,6 +1,6 @@
 import { fetchWithTimeout } from './fetchWithTimeout.js'
 
-const BASE = 'https://n36ig3n8n4.execute-api.us-east-1.amazonaws.com/prod'
+const BASE = 'https://indicereputacionpublica.co/prod'
 
 export async function sendOtp(phone) {
   const res = await fetchWithTimeout(`${BASE}/send-otp`, {

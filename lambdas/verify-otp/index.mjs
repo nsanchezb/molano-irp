@@ -11,6 +11,10 @@ const ONURIX_KEY    = process.env.ONURIX_KEY;
 const APP_NAME      = process.env.APP_NAME       || 'IRP-Vencejo';
 const MAX_ATTEMPTS  = 3;
 
+if (!JWT_SECRET || !ONURIX_CLIENT || !ONURIX_KEY) {
+  throw new Error('irp-verify-otp: JWT_SECRET, ONURIX_CLIENT and ONURIX_KEY are required env vars');
+}
+
 function hashPhone(phone) {
   return createHash('sha256').update(phone).digest('hex');
 }
@@ -130,6 +134,7 @@ export const handler = async (event) => {
   if (!verified) {
     const newAttempts = attempts + 1;
     if (newAttempts >= MAX_ATTEMPTS) {
+      console.log(JSON.stringify({ event: 'OTP_LOCKED', phoneHash }));
       await ddb.send(new DeleteItemCommand({ TableName: OTP_TABLE, Key: { phoneHash: { S: phoneHash } } }));
       return response(403, { error: 'locked', message: 'Demasiados intentos. Solicita un nuevo codigo.' });
     }

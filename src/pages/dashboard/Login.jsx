@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../../hooks/useDashboardAuth.js'
+import { storeToken } from '../../hooks/useDashboardAuth.js'
+import { loginAdmin } from '../../api/resultados.js'
 import styles from './Login.module.css'
 
 export default function DashboardLogin() {
@@ -14,12 +15,15 @@ export default function DashboardLogin() {
     setLoading(true)
     setError(null)
     try {
-      await login(password)
+      const token = await loginAdmin(password)
+      storeToken(token)
       navigate('/dashboard', { replace: true })
     } catch {
       setError('Contraseña incorrecta.')
     } finally {
       setLoading(false)
+      // Limpiar password del estado de React tan pronto como sea posible
+      setPassword('')
     }
   }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { isAuthenticated, logout } from '../../hooks/useDashboardAuth.js'
+import { isAuthenticated, logout, getStoredToken } from '../../hooks/useDashboardAuth.js'
 import { getResultados, getConfig, updateConfig } from '../../api/resultados.js'
 import { useEntidades } from '../../hooks/useEntidades.js'
 import TimelineChart from '../../components/TimelineChart.jsx'
@@ -184,8 +184,7 @@ export default function Ranking() {
     const newVal = !reactionsEnabled
     setTogglingReactions(true)
     try {
-      const hash = sessionStorage.getItem('irp_dash_auth') || ''
-      await updateConfig(newVal, hash)
+      await updateConfig(newVal, getStoredToken())
       setReactionsEnabled(newVal)
     } catch { /* ignore toggle errors silently */ }
     finally { setTogglingReactions(false) }

@@ -1,6 +1,6 @@
 import { fetchWithTimeout } from './fetchWithTimeout.js'
 
-const BASE = 'https://n36ig3n8n4.execute-api.us-east-1.amazonaws.com/prod'
+const BASE = 'https://indicereputacionpublica.co/prod'
 
 export async function getResultados(entityId) {
   const url = entityId
@@ -19,12 +19,28 @@ export async function getConfig() {
   return data
 }
 
-export async function updateConfig(enabled, adminHash) {
+// Valida la contraseña contra el backend y retorna un token efímero (8h).
+// La contraseña nunca se almacena en el cliente después de esta llamada.
+export async function loginAdmin(password) {
   const res = await fetchWithTimeout(`${BASE}/config`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-admin-key': adminHash,
+      'x-admin-key': password,
+    },
+    body: JSON.stringify({ action: 'check' }),
+  }, 5000)
+  const data = await res.json()
+  if (!res.ok) throw new Error('unauthorized')
+  return data.token
+}
+
+export async function updateConfig(enabled, token) {
+  const res = await fetchWithTimeout(`${BASE}/config`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': token,
     },
     body: JSON.stringify({ enabled }),
   }, 5000)

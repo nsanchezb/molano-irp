@@ -6,6 +6,10 @@ const ddb = new DynamoDBClient({ region: 'us-east-1' });
 const RESPONSES_TABLE = process.env.RESPONSES_TABLE || 'irp-responses';
 const JWT_SECRET      = process.env.JWT_SECRET;
 
+if (!JWT_SECRET) {
+  throw new Error('irp-submit-survey: JWT_SECRET is a required env var');
+}
+
 function base64url(str) {
   return str.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
