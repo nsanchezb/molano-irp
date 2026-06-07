@@ -1,6 +1,11 @@
 import https from 'https';
 import { createHash } from 'crypto';
-import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand,
+  UpdateItemCommand,
+} from '@aws-sdk/client-dynamodb';
 
 const ddb = new DynamoDBClient({ region: 'us-east-1' });
 
@@ -10,9 +15,27 @@ const ONURIX_KEY       = process.env.ONURIX_KEY;
 const APP_NAME         = process.env.APP_NAME    || 'IRP-Vencejo';
 const COOLDOWN_SECONDS = 120;
 const OTP_TTL_SECONDS  = 300;
+const IP_WINDOW        = 300;  // 5 minutos
+const IP_MAX_REQUESTS  = 10;
 
 function hashPhone(phone) {
   return createHash('sha256').update(phone).digest('hex');
+}
+
+async function checkIpRateLimit(ip, now) {
+  const ipKey = `ip:${ip}`;
+  const res = await ddb.send(new UpdateItemCommand({
+    TableName: OTP_TABLE,
+    Key: { phoneHash: { S: ipKey } },
+    UpdateExpression: 'ADD #cnt :one SET #ttl = if_not_exists(#ttl, :exp)',
+    ExpressionAttributeNames: { '#cnt': 'ipCount', '#ttl': 'ttl' },
+    ExpressionAttributeValues: {
+      ':one': { N: '1' },
+      ':exp': { N: String(now + IP_WINDOW) },
+    },
+    ReturnValues: 'ALL_NEW',
+  }));
+  return parseInt(res.Attributes?.ipCount?.N || '1', 10);
 }
 
 function onurixRequest(path, params) {
@@ -68,10 +91,19 @@ export const handler = async (event) => {
     return response(400, { error: 'invalid_phone' });
   }
 
+  const now = Math.floor(Date.now() / 1000);
+  const ip  = event.requestContext?.http?.sourceIp || 'unknown';
+
+  // Rate limit por IP: máximo 10 OTPs por IP cada 5 minutos
+  const ipCount = await checkIpRateLimit(ip, now);
+  if (ipCount > IP_MAX_REQUESTS) {
+    return response(429, { error: 'too_many_requests', retryAfter: IP_WINDOW });
+  }
+
   const fullPhone = `57${phone}`;
   const phoneHash = hashPhone(fullPhone);
-  const now       = Math.floor(Date.now() / 1000);
 
+  // Cooldown por teléfono: mínimo 120s entre OTPs al mismo número
   const existing = await ddb.send(new GetItemCommand({
     TableName: OTP_TABLE,
     Key: { phoneHash: { S: phoneHash } },
